@@ -1,0 +1,11 @@
+{
+  "appId": "com.venkayaswamy.app",
+  "appName": "Venkaiah Swamy",
+  "webDir": "www",
+  "server": {
+    "androidScheme": "https"
+  },
+  "android": {
+    "allowMixedContent": false
+  }
+}

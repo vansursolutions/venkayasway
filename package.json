@@ -1,0 +1,20 @@
+{
+  "name": "venkayaswamy",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Website and Android app for Sri Venkaiah Swamy Temple, Sullurupeta (venkayaswamy.com)",
+  "scripts": {
+    "dev": "npx -y serve www -l 3000",
+    "icons": "python3 tools/make-images.py",
+    "android:sync": "cap sync android",
+    "android:open": "cap open android",
+    "android:run": "cap run android"
+  },
+  "dependencies": {
+    "@capacitor/android": "^7.0.0",
+    "@capacitor/core": "^7.0.0"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^7.0.0"
+  }
+}
