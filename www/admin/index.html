@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en" data-lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Admin – Sri Venkaiah Swamy Temple</title>
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#7a1f1f">
+<link rel="icon" href="/icons/favicon.png">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif:wght@400;600&family=Noto+Serif+Telugu:wght@400;600&family=Noto+Sans:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/style.css">
+<script src="/js/lang-init.js"></script>
+<script src="/js/config.js"></script>
+<script src="/js/api.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/amazon-cognito-identity-js@6.3.12/dist/amazon-cognito-identity-js.min.js"></script>
+</head>
+<body>
+<main class="section">
+  <div class="container">
+    <!-- Login -->
+    <div id="login" class="login-box" hidden>
+      <h1 style="font-size:1.5rem;margin-top:0">Admin sign in</h1>
+      <form id="loginForm" class="contact">
+        <div><label for="lEmail">Email</label><input id="lEmail" type="email" required autocomplete="username"></div>
+        <div><label for="lPw">Password</label><input id="lPw" type="password" required autocomplete="current-password"></div>
+        <div id="newPwWrap" hidden><label for="lNewPw">Choose a new password (min 8 chars, with a number)</label><input id="lNewPw" type="password" autocomplete="new-password"></div>
+        <label style="font-weight:400"><input type="checkbox" id="lRemember" style="width:auto"> Keep me signed in on this device</label>
+        <button class="btn" type="submit" id="lBtn">Sign in</button>
+        <div id="lMsg"></div>
+      </form>
+    </div>
+
+    <!-- Dashboard -->
+    <div id="dash" hidden>
+      <div class="admin-bar">
+        <div><strong id="who"></strong> <span class="pill" id="role"></span></div>
+        <div><a class="btn outline small" href="/">View site</a> <button class="btn small danger" id="logout">Log out</button></div>
+      </div>
+      <div class="tabs" id="tabs">
+        <button data-t="events" class="adminOnly">Events</button>
+        <button data-t="sponsors" class="adminOnly">Annadanam sponsors</button>
+        <button data-t="media">Photos &amp; videos</button>
+        <button data-t="users" class="adminOnly">Users</button>
+      </div>
+
+      <div class="panel" id="p-events">
+        <h2 style="margin-top:0">Add / edit event</h2>
+        <form id="evForm" class="contact" style="max-width:none">
+          <input type="hidden" id="evId">
+          <div class="row">
+            <div><label>Date</label><input id="evDate" type="date" required></div>
+            <div><label>Time (text)</label><input id="evTime" placeholder="6:00 AM – 9:00 PM"></div>
+          </div>
+          <div class="row">
+            <div><label>Title (English)</label><input id="evTitleEn" required></div>
+            <div><label>Title (Telugu)</label><input id="evTitleTe" lang="te"></div>
+          </div>
+          <div class="row">
+            <div><label>Details (English)</label><textarea id="evDescEn" style="min-height:70px"></textarea></div>
+            <div><label>Details (Telugu)</label><textarea id="evDescTe" lang="te" style="min-height:70px"></textarea></div>
+          </div>
+          <div><button class="btn" type="submit">Save event</button> <button class="btn outline" type="button" id="evReset">Clear</button></div>
+          <div id="evMsg"></div>
+        </form>
+        <h2>All events</h2>
+        <div class="table-wrap"><table id="evTable"><tr><th>Date</th><th>Title</th><th>Time</th><th></th></tr></table></div>
+      </div>
+
+      <div class="panel" id="p-sponsors">
+        <h2 style="margin-top:0">Annadanam sponsor requests</h2>
+        <p class="muted">New requests arrive as <span class="pill pending">pending</span>. Call the devotee, then mark confirmed or declined. Confirmed and pending both show as "sponsored" on the public schedule.</p>
+        <div class="table-wrap"><table id="spTable"><tr><th>Saturday</th><th>Name</th><th>Phone</th><th>Email</th><th>Note</th><th>Notified</th><th>Status</th><th></th></tr></table></div>
+      </div>
+
+      <div class="panel" id="p-media">
+        <h2 style="margin-top:0">Upload photos &amp; videos</h2>
+        <form id="upForm" class="contact">
+          <div><label for="upTitle">Caption (optional)</label><input id="upTitle" maxlength="120"></div>
+          <div><label for="upFiles">Files (JPG, PNG, WebP, MP4, MOV, WebM)</label><input id="upFiles" type="file" multiple accept="image/jpeg,image/png,image/webp,video/mp4,video/quicktime,video/webm" required></div>
+          <button class="btn" type="submit" id="upBtn">Upload</button>
+          <progress id="upProg" value="0" max="100" hidden></progress>
+          <div id="upMsg"></div>
+        </form>
+        <h2>Gallery items</h2>
+        <div class="gallery" id="mediaList"></div>
+      </div>
+
+      <div class="panel" id="p-users">
+        <h2 style="margin-top:0">Add a user</h2>
+        <p class="muted">The person receives an email with a temporary password. <b>Members</b> can upload photos and videos. <b>Admins</b> can do everything, including adding users.</p>
+        <form id="uForm" class="contact">
+          <div class="row">
+            <div><label for="uEmail">Email</label><input id="uEmail" type="email" required></div>
+            <div><label for="uRole">Role</label><select id="uRole"><option value="member">Member (uploads only)</option><option value="admin">Admin</option></select></div>
+            <div><button class="btn" type="submit">Add user</button></div>
+          </div>
+          <div id="uMsg"></div>
+        </form>
+        <h2>Users</h2>
+        <div class="table-wrap"><table id="uTable"><tr><th>Email</th><th>Role</th><th>Status</th><th></th></tr></table></div>
+      </div>
+    </div>
+  </div>
+</main>
+<script>
+(function(){
+  var C = VS.config, ACI = window.AmazonCognitoIdentity;
+  var pool = new ACI.CognitoUserPool({ UserPoolId: C.userPoolId, ClientId: C.clientId });
+  var $ = function(id){ return document.getElementById(id); };
+  function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
+  function msg(id, text, ok){ $(id).innerHTML = text ? '<div class="alert '+(ok?'ok':'err')+'">'+esc(text)+'</div>' : ''; }
+
+  // ---- auth ----
+  var pendingUser = null;
+  $('loginForm').onsubmit = function(e){
+    e.preventDefault(); msg('lMsg',''); $('lBtn').disabled = true;
+    var email = $('lEmail').value.trim().toLowerCase(), remember = $('lRemember').checked;
+    var cb = {
+      onSuccess: function(sess){ VS.setToken(sess.getIdToken().getJwtToken(), remember); $('lBtn').disabled=false; show(); },
+      onFailure: function(err){ msg('lMsg', err.message || String(err)); $('lBtn').disabled=false; },
+      newPasswordRequired: function(){ pendingUser = user; $('newPwWrap').hidden=false; $('lNewPw').required=true; $('lBtn').textContent='Set password & sign in'; msg('lMsg','First login: please choose a new password.', true); $('lBtn').disabled=false; }
+    };
+    if (pendingUser && $('lNewPw').value){ pendingUser.completeNewPasswordChallenge($('lNewPw').value, {}, cb); return; }
+    var user = new ACI.CognitoUser({ Username: email, Pool: pool });
+    user.authenticateUser(new ACI.AuthenticationDetails({ Username: email, Password: $('lPw').value }), cb);
+  };
+  $('logout').onclick = function(){ VS.clearToken(); var u = pool.getCurrentUser(); if (u) u.signOut(); show(); };
+
+  function show(){
+    var c = VS.claims();
+    $('login').hidden = !!c; $('dash').hidden = !c;
+    if (!c) return;
+    var admin = VS.isAdmin();
+    $('who').textContent = c.email; $('role').textContent = admin ? 'admin' : 'member';
+    Array.prototype.forEach.call(document.querySelectorAll('.adminOnly'), function(el){ el.hidden = !admin; });
+    tab(admin ? 'events' : 'media');
+  }
+  function tab(t){
+    Array.prototype.forEach.call($('tabs').children, function(b){ b.classList.toggle('active', b.getAttribute('data-t')===t); });
+    Array.prototype.forEach.call(document.querySelectorAll('.panel'), function(p){ p.classList.toggle('active', p.id==='p-'+t); });
+    ({events: loadEvents, sponsors: loadSponsors, media: loadMedia, users: loadUsers})[t]();
+  }
+  $('tabs').onclick = function(e){ var t = e.target.getAttribute('data-t'); if (t) tab(t); };
+  function fail(id){ return function(err){ msg(id, err.message || String(err)); if (/401|403/.test(err.message)) { VS.clearToken(); show(); } }; }
+
+  // ---- events ----
+  function loadEvents(){
+    VS.api('GET','/events').then(function(list){
+      $('evTable').innerHTML = '<tr><th>Date</th><th>Title</th><th>Time</th><th></th></tr>' + list.map(function(e){
+        return '<tr><td>'+esc(e.date)+'</td><td>'+esc(e.title_en)+'<br><span lang="te" class="muted">'+esc(e.title_te)+'</span></td><td>'+esc(e.time)+'</td>' +
+          '<td style="white-space:nowrap"><button class="btn small outline" data-edit="'+e.id+'">Edit</button> <button class="btn small danger" data-del="'+e.id+'">Delete</button></td></tr>';
+      }).join('');
+      $('evTable')._list = list;
+    }).catch(fail('evMsg'));
+  }
+  $('evTable').onclick = function(e){
+    var id = e.target.getAttribute('data-edit'), del = e.target.getAttribute('data-del');
+    if (id){ var ev = $('evTable')._list.filter(function(x){return x.id===id;})[0]; $('evId').value=id; $('evDate').value=ev.date; $('evTime').value=ev.time||''; $('evTitleEn').value=ev.title_en; $('evTitleTe').value=ev.title_te||''; $('evDescEn').value=ev.desc_en||''; $('evDescTe').value=ev.desc_te||''; window.scrollTo(0,0); }
+    if (del && confirm('Delete this event?')) VS.api('DELETE','/events/'+del).then(loadEvents).catch(fail('evMsg'));
+  };
+  $('evForm').onsubmit = function(e){
+    e.preventDefault();
+    var d = { date: $('evDate').value, time: $('evTime').value, title_en: $('evTitleEn').value, title_te: $('evTitleTe').value, desc_en: $('evDescEn').value, desc_te: $('evDescTe').value };
+    var id = $('evId').value;
+    VS.api(id?'PUT':'POST', '/events'+(id?'/'+id:''), d).then(function(){ msg('evMsg','Saved.',true); $('evForm').reset(); $('evId').value=''; loadEvents(); }).catch(fail('evMsg'));
+  };
+  $('evReset').onclick = function(){ $('evForm').reset(); $('evId').value=''; };
+
+  // ---- sponsors ----
+  function loadSponsors(){
+    VS.api('GET','/sponsors').then(function(list){
+      $('spTable').innerHTML = '<tr><th>Saturday</th><th>Name</th><th>Phone</th><th>Email</th><th>Note</th><th>Notified</th><th>Status</th><th></th></tr>' + list.map(function(s){
+        return '<tr><td>'+esc(s.date)+'</td><td>'+esc(s.name)+'</td><td><a href="tel:'+esc(s.phone)+'">'+esc(s.phone)+'</a></td><td><a href="mailto:'+esc(s.email)+'">'+esc(s.email)+'</a></td><td>'+esc(s.note)+'</td>' +
+          '<td class="muted">'+(s.email_sent?'✉︎ ':'')+(s.sms_sent?'📱':'')+'</td><td><span class="pill '+esc(s.status)+'">'+esc(s.status)+'</span></td>' +
+          '<td style="white-space:nowrap"><button class="btn small" data-st="confirmed" data-id="'+s.id+'">Confirm</button> <button class="btn small outline" data-st="declined" data-id="'+s.id+'">Decline</button></td></tr>';
+      }).join('');
+    }).catch(fail('evMsg'));
+  }
+  $('spTable').onclick = function(e){
+    var st = e.target.getAttribute('data-st'), id = e.target.getAttribute('data-id');
+    if (st && id) VS.api('PUT','/sponsors/'+id,{status:st}).then(loadSponsors).catch(fail('evMsg'));
+  };
+
+  // ---- media ----
+  function loadMedia(){
+    VS.api('GET','/media').then(function(list){
+      var admin = VS.isAdmin();
+      $('mediaList').innerHTML = list.map(function(m){
+        var u = VS.mediaUrl(m.key);
+        return '<figure>'+(m.type==='video'?'<video src="'+u+'" controls preload="metadata" style="width:100%;aspect-ratio:4/3;background:#000"></video>':'<img src="'+u+'" loading="lazy" alt="">') +
+          '<figcaption>'+esc(m.title||'')+'<br><span class="muted">'+esc((m.created||'').slice(0,10))+' · '+esc(m.by||'')+'</span>'+(admin?' <button class="btn small danger" data-del="'+m.id+'" style="float:right">Delete</button>':'')+'</figcaption></figure>';
+      }).join('') || '<p class="muted">Nothing uploaded yet.</p>';
+    }).catch(fail('upMsg'));
+  }
+  $('mediaList').onclick = function(e){ var id = e.target.getAttribute('data-del'); if (id && confirm('Delete this item?')) VS.api('DELETE','/media/'+id).then(loadMedia).catch(fail('upMsg')); };
+  function putFile(url, file, onProgress){
+    return new Promise(function(res, rej){
+      var x = new XMLHttpRequest(); x.open('PUT', url); x.setRequestHeader('Content-Type', file.type);
+      x.upload.onprogress = function(ev){ if (ev.lengthComputable) onProgress(ev.loaded/ev.total); };
+      x.onload = function(){ x.status < 300 ? res() : rej(new Error('Upload failed ('+x.status+')')); }; x.onerror = function(){ rej(new Error('Upload failed')); };
+      x.send(file);
+    });
+  }
+  $('upForm').onsubmit = function(e){
+    e.preventDefault();
+    var files = Array.prototype.slice.call($('upFiles').files), title = $('upTitle').value, prog = $('upProg');
+    if (!files.length) return;
+    $('upBtn').disabled = true; prog.hidden = false; msg('upMsg','');
+    var done = 0;
+    files.reduce(function(p, f){
+      return p.then(function(){
+        return VS.api('POST','/media/upload-url',{contentType:f.type}).then(function(r){
+          return putFile(r.uploadUrl, f, function(frac){ prog.value = Math.round(((done+frac)/files.length)*100); })
+            .then(function(){ return VS.api('POST','/media',{id:r.id,key:r.key,contentType:f.type,title:title}); });
+        }).then(function(){ done++; });
+      });
+    }, Promise.resolve()).then(function(){ msg('upMsg', done+' file(s) uploaded.', true); $('upForm').reset(); loadMedia(); })
+      .catch(fail('upMsg')).then(function(){ $('upBtn').disabled=false; prog.hidden=true; prog.value=0; });
+  };
+
+  // ---- users ----
+  function loadUsers(){
+    VS.api('GET','/users').then(function(list){
+      $('uTable').innerHTML = '<tr><th>Email</th><th>Role</th><th>Status</th><th></th></tr>' + list.map(function(u){
+        return '<tr><td>'+esc(u.email)+'</td><td>'+esc(u.role)+'</td><td class="muted">'+esc(u.status)+'</td><td><button class="btn small danger" data-del="'+esc(u.username)+'">Remove</button></td></tr>';
+      }).join('');
+    }).catch(fail('uMsg'));
+  }
+  $('uForm').onsubmit = function(e){
+    e.preventDefault();
+    VS.api('POST','/users',{email:$('uEmail').value, role:$('uRole').value}).then(function(){ msg('uMsg','User added. They will receive an email with a temporary password.',true); $('uForm').reset(); loadUsers(); }).catch(fail('uMsg'));
+  };
+  $('uTable').onclick = function(e){ var u = e.target.getAttribute('data-del'); if (u && confirm('Remove user '+u+'?')) VS.api('DELETE','/users/'+encodeURIComponent(u)).then(loadUsers).catch(fail('uMsg')); };
+
+  if (!C.apiUrl) { $('login').hidden=false; msg('lMsg','Site backend is not configured (js/config.js).'); } else show();
+})();
+</script>
+</body>
+</html>

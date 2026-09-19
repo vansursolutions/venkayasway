@@ -1,8 +1,8 @@
 /* Simple offline cache for the app shell. Bump CACHE when you change files. */
-var CACHE = 'vs-v2';
+var CACHE = 'vs-v3';
 var ASSETS = [
-  './', 'index.html', 'life.html', 'teachings.html', 'temple.html', 'gallery.html', 'donate.html',
-  'css/style.css', 'js/site.js', 'js/lang-init.js', 'manifest.webmanifest',
+  './', 'index.html', 'life.html', 'teachings.html', 'temple.html', 'gallery.html', 'donate.html', 'events.html', 'annadanam.html',
+  'css/style.css', 'js/site.js', 'js/lang-init.js', 'js/api.js', 'js/config.js', 'manifest.webmanifest',
   'icons/icon-192.png', 'icons/icon-512.png'
 ];
 self.addEventListener('install', function (e) {
@@ -14,7 +14,7 @@ self.addEventListener('activate', function (e) {
   }).then(function () { return self.clients.claim(); }));
 });
 self.addEventListener('fetch', function (e) {
-  if (e.request.method !== 'GET' || !e.request.url.startsWith(self.location.origin)) return;
+  if (e.request.method !== 'GET' || !e.request.url.startsWith(self.location.origin) || e.request.url.indexOf('/admin') >= 0) return;
   e.respondWith(
     fetch(e.request).then(function (res) {
       var copy = res.clone();

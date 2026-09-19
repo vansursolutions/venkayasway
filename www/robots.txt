@@ -1,3 +1,4 @@
 User-agent: *
 Allow: /
-Sitemap: https://venkayaswamy.com/sitemap.xml
+Disallow: /admin/
+Sitemap: https://srivenkaiahswamy.com/sitemap.xml

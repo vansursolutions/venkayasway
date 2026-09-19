@@ -5,8 +5,10 @@
     { href: 'life.html',      en: 'Life Story',       te: 'జీవిత చరిత్ర' },
     { href: 'teachings.html', en: 'Teachings',        te: 'బోధనలు' },
     { href: 'temple.html',    en: 'Temple',           te: 'ఆలయం' },
+    { href: 'events.html',    en: 'Events',           te: 'కార్యక్రమాలు' },
+    { href: 'annadanam.html', en: 'Annadanam',        te: 'అన్నదానం' },
     { href: 'gallery.html',   en: 'Gallery',          te: 'గ్యాలరీ' },
-    { href: 'donate.html',    en: 'Donate & Contact', te: 'విరాళాలు & సంప్రదింపు' }
+    { href: 'donate.html',    en: 'Contact',          te: 'సంప్రదింపు' }
   ];
 
   function getLang() {
@@ -32,19 +34,19 @@
   function renderHeader() {
     var links = NAV.map(function (n) {
       var cur = n.href === currentPage() ? ' aria-current="page"' : '';
-      return '<a href="' + n.href + '"' + cur + '>' + bi(n.en, n.te) + '</a>';
+      return '<a href="/' + n.href + '"' + cur + '>' + bi(n.en, n.te) + '</a>';
     }).join('');
     return (
       '<header class="site-header"><div class="container bar">' +
-        '<a class="brand" href="index.html">' +
-          '<img src="icons/icon-192.png" alt="" width="42" height="42">' +
+        '<a class="brand" href="/">' +
+          '<img src="/icons/icon-192.png" alt="" width="42" height="42">' +
           '<span><span class="name">' + bi('Sri Venkaiah Swamy Temple', 'శ్రీ వెంకయ్య స్వామి ఆలయం') + '</span><br>' +
           '<span class="sub">' + bi('SULLURUPETA, ANDHRA PRADESH', 'సూళ్లూరుపేట, ఆంధ్రప్రదేశ్') + '</span></span>' +
         '</a>' +
+        '<nav class="nav" id="nav">' + links + '</nav>' +
+        // the language switch lives in the bar itself, not inside the menu: on a phone it is always one tap away, next to ☰
+        '<button class="lang-toggle" type="button"></button>' +
         '<button class="menu-btn" aria-label="Menu" aria-expanded="false">&#9776;</button>' +
-        '<nav class="nav" id="nav">' + links +
-          '<button class="lang-toggle" type="button"></button>' +
-        '</nav>' +
       '</div></header>'
     );
   }
@@ -58,8 +60,10 @@
             '<p>' + bi('Sullurupeta, Tirupati District,<br>Andhra Pradesh, India', 'సూళ్లూరుపేట, తిరుపతి జిల్లా,<br>ఆంధ్రప్రదేశ్, భారతదేశం') + '</p></div>' +
           '<div><h3>' + bi('Quick Links', 'త్వరిత లింకులు') + '</h3>' +
             '<p><a href="temple.html">' + bi('Darshan timings', 'దర్శన సమయాలు') + '</a><br>' +
-            '<a href="temple.html#reach">' + bi('How to reach', 'ఎలా చేరుకోవాలి') + '</a><br>' +
-            '<a href="donate.html">' + bi('Donate', 'విరాళం') + '</a></p></div>' +
+            '<a href="/temple.html#reach">' + bi('How to reach', 'ఎలా చేరుకోవాలి') + '</a><br>' +
+            '<a href="/annadanam.html">' + bi('Sponsor annadanam', 'అన్నదాన స్పాన్సర్') + '</a><br>' +
+            '<a href="/donate.html">' + bi('Donate', 'విరాళం') + '</a><br>' +
+            '<a href="admin/" style="opacity:.7">' + bi('Volunteer / admin login', 'వాలంటీర్ / అడ్మిన్ లాగిన్') + '</a></p></div>' +
           '<div><h3>' + bi('Contact', 'సంప్రదించండి') + '</h3>' +
             '<p><a href="mailto:info@venkayaswamy.com">info@venkayaswamy.com</a><br>' +
             '<a href="tel:+910000000000">+91 00000 00000</a></p></div>' +

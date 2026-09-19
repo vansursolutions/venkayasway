@@ -14,6 +14,8 @@
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif:wght@400;600&family=Noto+Serif+Telugu:wght@400;600&family=Noto+Sans:wght@400;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/style.css">
 <script src="js/lang-init.js"></script>
+<script src="js/config.js"></script>
+<script src="js/api.js"></script>
 </head>
 <body>
 <main>
@@ -39,6 +41,19 @@
         <strong><span class="en">Aradhana Mahotsavam: 18 – 24 August every year.</span><span class="te">ఆరాధన మహోత్సవం: ప్రతి సంవత్సరం ఆగస్టు 18 – 24.</span></strong>
         <span class="en">Special poojas, bhajans and annadanam are held at the temple. Saturdays are also special darshan days.</span>
         <span class="te">ఆలయంలో ప్రత్యేక పూజలు, భజనలు, అన్నదానం జరుగుతాయి. శనివారాలు కూడా ప్రత్యేక దర్శన దినాలు.</span>
+      </div>
+
+      <div class="callout">
+        <h2><span class="en">Sponsor a Saturday annadanam</span><span class="te">ఒక శనివారం అన్నదానానికి స్పాన్సర్ అవ్వండి</span></h2>
+        <p style="max-width:640px"><span class="en">Every Saturday the temple feeds every devotee who comes, just as Swamy shared whatever he received. Offer one Saturday in your family's name.</span>
+           <span class="te">స్వామి తనకు వచ్చినది అందరితో పంచుకున్నట్లే, ప్రతి శనివారం ఆలయం వచ్చిన ప్రతి భక్తునికి భోజనం పెడుతుంది. మీ కుటుంబం పేరున ఒక శనివారాన్ని సమర్పించండి.</span></p>
+        <a class="btn" href="annadanam.html"><span class="en">Become a sponsor</span><span class="te">స్పాన్సర్ అవ్వండి</span></a>
+      </div>
+
+      <div id="homeEvents" hidden>
+        <h2 style="margin-top:.8rem"><span class="en">Upcoming events</span><span class="te">రాబోయే కార్యక్రమాలు</span></h2>
+        <div id="homeEventList"></div>
+        <p><a href="events.html"><span class="en">Full schedule →</span><span class="te">పూర్తి షెడ్యూల్ →</span></a></p>
       </div>
 
       <div class="cards">
@@ -78,5 +93,21 @@
   </section>
 </main>
 <script src="js/site.js"></script>
+<script>
+(function(){
+  if (!VS.config.apiUrl) return;
+  function esc(t){ return String(t||'').replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
+  var today = new Date().toISOString().slice(0,10);
+  VS.api('GET','/events').then(function(list){
+    var up = list.filter(function(e){ return e.date >= today; }).slice(0,3);
+    if (!up.length) return;
+    document.getElementById('homeEventList').innerHTML = up.map(function(e){
+      var d = new Date(e.date+'T00:00:00');
+      return '<div class="event"><div class="d"><small>'+d.toLocaleDateString('en-IN',{month:'short'})+'</small><b>'+d.getDate()+'</b><small>'+d.getFullYear()+'</small></div><div><h3><span class="en">'+esc(e.title_en)+'</span><span class="te">'+esc(e.title_te||e.title_en)+'</span></h3>'+(e.time?'<div class="muted">'+esc(e.time)+'</div>':'')+'</div></div>';
+    }).join('');
+    document.getElementById('homeEvents').hidden = false;
+  }).catch(function(){});
+})();
+</script>
 </body>
 </html>

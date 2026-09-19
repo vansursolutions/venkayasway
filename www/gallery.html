@@ -14,32 +14,47 @@
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif:wght@400;600&family=Noto+Serif+Telugu:wght@400;600&family=Noto+Sans:wght@400;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/style.css">
 <script src="js/lang-init.js"></script>
+<script src="js/config.js"></script>
+<script src="js/api.js"></script>
 </head>
 <body>
 <main class="section">
   <div class="container">
     <h1><span class="en">Gallery</span><span class="te">గ్యాలరీ</span></h1>
-    <p class="placeholder">TODO: replace images/photo-1.jpg … photo-6.jpg with real photos (keep the file names, or edit the list below). Add more &lt;figure&gt; blocks as needed.</p>
+
+    <h2 style="margin-top:.5rem"><span class="en">Our YouTube channel</span><span class="te">మా యూట్యూబ్ ఛానల్</span></h2>
+    <div class="yt">
+      <div class="video"><iframe src="https://www.youtube-nocookie.com/embed/videoseries?list=UUrNrbCerWLBjv_raGBn9oxQ" title="Bhagavan Sri Venkaiah Swamy Mandiram Sullurupeta – YouTube" loading="lazy" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></div>
+      <div>
+        <h3 style="margin-top:0">Bhagavan Sri Venkaiah Swamy Mandiram Sullurupeta</h3>
+        <p><span class="en">Live poojas, bhajans, Aradhana celebrations and annadanam from the temple. Subscribe to get notified of new videos.</span>
+           <span class="te">ఆలయం నుండి ప్రత్యక్ష పూజలు, భజనలు, ఆరాధన ఉత్సవాలు, అన్నదానం. కొత్త వీడియోల కోసం సబ్‌స్క్రైబ్ చేయండి.</span></p>
+        <a class="yt-sub" href="https://www.youtube.com/@bhagavansrivenkaiahswamyma2343?sub_confirmation=1" target="_blank" rel="noopener">&#9654; <span class="en">Subscribe on YouTube</span><span class="te">యూట్యూబ్‌లో సబ్‌స్క్రైబ్ చేయండి</span></a>
+      </div>
+    </div>
 
     <h2><span class="en">Photos</span><span class="te">ఫోటోలు</span></h2>
-    <div class="gallery">
-      <figure><a href="images/photo-1.jpg" target="_blank"><img src="images/photo-1.jpg" alt="Temple" loading="lazy"></a><figcaption><span class="en">Temple entrance</span><span class="te">ఆలయ ప్రవేశం</span></figcaption></figure>
-      <figure><a href="images/photo-2.jpg" target="_blank"><img src="images/photo-2.jpg" alt="Sanctum" loading="lazy"></a><figcaption><span class="en">Sanctum</span><span class="te">గర్భగుడి</span></figcaption></figure>
-      <figure><a href="images/photo-3.jpg" target="_blank"><img src="images/photo-3.jpg" alt="Aradhana" loading="lazy"></a><figcaption><span class="en">Aradhana Mahotsavam</span><span class="te">ఆరాధన మహోత్సవం</span></figcaption></figure>
-      <figure><a href="images/photo-4.jpg" target="_blank"><img src="images/photo-4.jpg" alt="Bhajans" loading="lazy"></a><figcaption><span class="en">Bhajans</span><span class="te">భజనలు</span></figcaption></figure>
-      <figure><a href="images/photo-5.jpg" target="_blank"><img src="images/photo-5.jpg" alt="Annadanam" loading="lazy"></a><figcaption><span class="en">Annadanam</span><span class="te">అన్నదానం</span></figcaption></figure>
-      <figure><a href="images/photo-6.jpg" target="_blank"><img src="images/photo-6.jpg" alt="Devotees" loading="lazy"></a><figcaption><span class="en">Devotees</span><span class="te">భక్తులు</span></figcaption></figure>
-    </div>
+    <div class="gallery" id="photos"></div>
 
     <h2><span class="en">Videos</span><span class="te">వీడియోలు</span></h2>
-    <p class="placeholder">TODO: paste YouTube video IDs. Example block is below; copy it for each video. The ID is the part after "v=" in a YouTube link.</p>
-    <div class="videos">
-      <!-- Example. Replace VIDEO_ID with a real id, then remove this comment wrapper.
-      <div class="video"><iframe src="https://www.youtube-nocookie.com/embed/VIDEO_ID" title="Bhajans" loading="lazy" allowfullscreen></iframe></div>
-      -->
-    </div>
+    <div class="videos" id="videos"></div>
+    <p class="muted"><span class="en">Temple volunteers can add photos and videos from the admin page.</span><span class="te">ఆలయ వాలంటీర్లు అడ్మిన్ పేజీ నుండి ఫోటోలు, వీడియోలు జోడించవచ్చు.</span></p>
   </div>
 </main>
 <script src="js/site.js"></script>
+<script>
+(function(){
+  function esc(t){ return String(t||'').replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
+  var ph = document.getElementById('photos'), vd = document.getElementById('videos');
+  var fallback = [1,2,3,4,5,6].map(function(i){ return '<figure><img src="images/photo-'+i+'.jpg" alt="" loading="lazy"><figcaption class="placeholder">Placeholder photo '+i+'</figcaption></figure>'; }).join('');
+  function render(list){
+    var p = list.filter(function(m){return m.type==='photo';}), v = list.filter(function(m){return m.type==='video';});
+    ph.innerHTML = p.length ? p.map(function(m){ var u=VS.mediaUrl(m.key); return '<figure><a href="'+u+'" target="_blank"><img src="'+u+'" alt="'+esc(m.title)+'" loading="lazy"></a>'+(m.title?'<figcaption>'+esc(m.title)+'</figcaption>':'')+'</figure>'; }).join('') : fallback;
+    vd.innerHTML = v.length ? v.map(function(m){ return '<div><div class="video"><video src="'+VS.mediaUrl(m.key)+'" controls preload="metadata" style="position:absolute;inset:0;width:100%;height:100%"></video></div>'+(m.title?'<p class="muted" style="margin:.3rem 0 0">'+esc(m.title)+'</p>':'')+'</div>'; }).join('') :
+      '<p class="muted"><span class="en">No videos uploaded yet. See our YouTube channel above.</span><span class="te">ఇంకా వీడియోలు అప్‌లోడ్ కాలేదు. పైన మా యూట్యూబ్ ఛానల్ చూడండి.</span></p>';
+  }
+  if (VS.config.apiUrl) VS.api('GET','/media').then(render).catch(function(){ render([]); }); else render([]);
+})();
+</script>
 </body>
 </html>

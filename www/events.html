@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en" data-lang="en">
+<head>
+<title>Events – Sri Venkaiah Swamy Temple, Sullurupeta</title>
+<meta name="description" content="Upcoming events, festivals and the Saturday annadanam schedule at Sri Venkaiah Swamy Temple, Sullurupeta.">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#7a1f1f">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="icon" href="/icons/favicon.png">
+<link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif:wght@400;600&family=Noto+Serif+Telugu:wght@400;600&family=Noto+Sans:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/style.css">
+<script src="/js/lang-init.js"></script>
+<script src="/js/config.js"></script>
+<script src="/js/api.js"></script>
+</head>
+<body>
+<main class="section">
+  <div class="container">
+    <h1><span class="en">Events &amp; Schedule</span><span class="te">కార్యక్రమాలు &amp; షెడ్యూల్</span></h1>
+
+    <h2 id="upcoming" style="margin-top:.5rem"><span class="en">Upcoming events</span><span class="te">రాబోయే కార్యక్రమాలు</span></h2>
+    <div id="events"><p class="muted"><span class="en">Loading…</span><span class="te">లోడ్ అవుతోంది…</span></p></div>
+    <details id="pastWrap" hidden><summary class="muted" style="cursor:pointer"><span class="en">Past events</span><span class="te">గత కార్యక్రమాలు</span></summary><div id="past" style="margin-top:.8rem"></div></details>
+
+    <h2 id="annadanam"><span class="en">Saturday annadanam schedule</span><span class="te">శనివారం అన్నదాన షెడ్యూల్</span></h2>
+    <p><span class="en">Every Saturday, meals are served to all devotees. Devotees may sponsor a Saturday. Pick an open date below to register.</span>
+       <span class="te">ప్రతి శనివారం భక్తులందరికీ అన్నదానం జరుగుతుంది. భక్తులు ఒక శనివారాన్ని స్పాన్సర్ చేయవచ్చు. నమోదు కోసం క్రింద ఖాళీగా ఉన్న తేదీని ఎంచుకోండి.</span></p>
+    <div class="sat-grid" id="sats"></div>
+    <p style="margin-top:1rem"><a class="btn" href="/annadanam.html"><span class="en">Become an annadanam sponsor</span><span class="te">అన్నదాన స్పాన్సర్ అవ్వండి</span></a></p>
+  </div>
+</main>
+<script src="/js/site.js"></script>
+<script>
+(function(){
+  var L = VS.lang;
+  function esc(s){ return String(s||'').replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
+  function ev(e){
+    var d = new Date(e.date+'T00:00:00');
+    var mon = d.toLocaleDateString(L()==='te'?'te-IN':'en-IN',{month:'short'});
+    return '<div class="event"><div class="d"><small>'+esc(mon)+'</small><b>'+d.getDate()+'</b><small>'+d.getFullYear()+'</small></div><div>' +
+      '<h3><span class="en">'+esc(e.title_en)+'</span><span class="te">'+esc(e.title_te||e.title_en)+'</span></h3>' +
+      (e.time?'<div class="muted">'+esc(e.time)+'</div>':'') +
+      '<p style="margin:.3rem 0 0"><span class="en">'+esc(e.desc_en)+'</span><span class="te">'+esc(e.desc_te||e.desc_en)+'</span></p></div></div>';
+  }
+  var today = new Date().toISOString().slice(0,10);
+  VS.api('GET','/events').then(function(list){
+    var up = list.filter(function(e){return e.date>=today;}), past = list.filter(function(e){return e.date<today;}).reverse();
+    document.getElementById('events').innerHTML = up.length ? up.map(ev).join('') :
+      '<p class="muted"><span class="en">No upcoming events posted yet. Daily poojas continue as usual.</span><span class="te">ఇంకా కార్యక్రమాలు ప్రకటించలేదు. నిత్య పూజలు యథావిధిగా జరుగుతాయి.</span></p>';
+    if (past.length){ document.getElementById('pastWrap').hidden=false; document.getElementById('past').innerHTML = past.map(ev).join(''); }
+  }).catch(function(){ document.getElementById('events').innerHTML='<p class="muted">Could not load events.</p>'; });
+  VS.api('GET','/sponsors/dates').then(function(ds){
+    document.getElementById('sats').innerHTML = ds.map(function(x){
+      var taken = x.sponsors>0;
+      return '<a class="sat'+(taken?' taken':'')+'" href="/annadanam.html?date='+x.date+'" style="text-decoration:none"><b>'+esc(VS.fmtDate(x.date,{day:'numeric',month:'short',year:'numeric'}))+'</b>' +
+        '<span class="st'+(taken?' ok':'')+'">'+(taken?'<span class="en">Sponsored ('+x.sponsors+')</span><span class="te">స్పాన్సర్ అయింది ('+x.sponsors+')</span>':'<span class="en">Open – sponsor this day</span><span class="te">ఖాళీ – స్పాన్సర్ చేయండి</span>')+'</span></a>';
+    }).join('');
+  }).catch(function(){});
+})();
+</script>
+</body>
+</html>
