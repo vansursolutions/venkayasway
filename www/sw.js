@@ -1,5 +1,5 @@
 /* Simple offline cache for the app shell. Bump CACHE when you change files. */
-var CACHE = 'vs-v4';
+var CACHE = 'vs-v5';
 var ASSETS = [
   './', 'index.html', 'life.html', 'teachings.html', 'temple.html', 'gallery.html', 'donate.html', 'events.html', 'annadanam.html',
   'css/style.css', 'js/site.js', 'js/lang-init.js', 'js/api.js', 'js/config.js', 'manifest.webmanifest',
