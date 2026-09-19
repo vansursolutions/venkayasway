@@ -226,3 +226,7 @@ textarea { min-height: 130px; resize: vertical; }
 .btn.small { padding: .35rem .8rem; font-size: .85rem; } .btn.danger { background: #a12626; }
 .login-box { max-width: 420px; margin: 2rem auto; background: var(--white); border-radius: var(--radius); box-shadow: var(--shadow); padding: 1.6rem; }
 progress { width: 100%; }
+
+.yt-link { display: inline-flex; align-items: center; gap: .4rem; color: var(--white); text-decoration: none; font-family: var(--font-ui); font-size: .9rem; padding: .45rem .7rem; border-radius: 8px; }
+.yt-link:hover { background: rgba(255,255,255,.14); }
+.yt-link.foot { padding: 0; color: #f6c98a; }

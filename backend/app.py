@@ -81,7 +81,7 @@ def send_email(to, subject, text, html=None):
     if html:
         content["Simple"]["Body"]["Html"] = {"Data": html}
     try:
-        ses.send_email(FromEmailAddress=f"{TEMPLE} <{SENDER}>", Destination={"ToAddresses": [to]}, Content=content)
+        ses.send_email(FromEmailAddress=f"\"Sri Venkaiah Swamy Temple\" <{SENDER}>", Destination={"ToAddresses": [to]}, Content=content)
         return True
     except Exception as e:
         print("EMAIL FAILED", to, repr(e))

@@ -15,4 +15,4 @@ aws s3 cp www/sw.js "s3://$BUCKET/sw.js" --cache-control "no-cache" --content-ty
 
 echo "Clearing CloudFront cache..."
 aws cloudfront create-invalidation --distribution-id "$DIST" --paths "/*" --query Invalidation.Id --output text
-echo "Deployed. Live on https://venkayaswamy.com in a minute or two."
+echo "Deployed. Live on https://srivenkaiahswamy.com in a minute or two."
