@@ -67,10 +67,10 @@
           '<div><h3>' + bi('Follow us', 'మమ్మల్ని అనుసరించండి') + '</h3>' +
             '<p>' + '<a class="yt-link" href="https://www.youtube.com/@bhagavansrivenkaiahswamyma2343" target="_blank" rel="noopener" title="YouTube channel"><svg width="22" height="16" viewBox="0 0 24 17" aria-hidden="true"><path fill="#ff0000" d="M23.5 2.7a3 3 0 0 0-2.1-2.1C19.5 0 12 0 12 0S4.5 0 2.6.6A3 3 0 0 0 .5 2.7 31 31 0 0 0 0 8.5a31 31 0 0 0 .5 5.8 3 3 0 0 0 2.1 2.1c1.9.6 9.4.6 9.4.6s7.5 0 9.4-.6a3 3 0 0 0 2.1-2.1 31 31 0 0 0 .5-5.8 31 31 0 0 0-.5-5.8z"/><path fill="#fff" d="M9.6 12.1V4.9l6.2 3.6z"/></svg> YouTube</a>' + '<br><span class="muted" style="color:#c9b9a5">Bhagavan Sri Venkaiah Swamy Mandiram Sullurupeta</span></p></div>' +
           '<div><h3>' + bi('Contact', 'సంప్రదించండి') + '</h3>' +
-            '<p><a href="mailto:info@venkayaswamy.com">info@venkayaswamy.com</a><br>' +
+            '<p><a href="mailto:info@srivenkaiahswamy.com">info@srivenkaiahswamy.com</a><br>' +
             '<a href="tel:+910000000000">+91 00000 00000</a></p></div>' +
         '</div>' +
-        '<div class="copy">&copy; ' + year + ' venkayaswamy.com &middot; ' + bi('Om Narayana Adi Narayana', 'ఓం నారాయణ ఆది నారాయణ') + '</div>' +
+        '<div class="copy">&copy; ' + year + ' srivenkaiahswamy.com &middot; <a href="/privacy.html">' + bi('Privacy', 'గోప్యత') + '</a> &middot; ' + bi('Om Narayana Adi Narayana', 'ఓం నారాయణ ఆది నారాయణ') + '</div>' +
       '</div></footer>'
     );
   }

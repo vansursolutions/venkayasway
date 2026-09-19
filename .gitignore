@@ -10,3 +10,5 @@ android/app/*.iml
 android/capacitor-cordova-android-plugins/build/
 *.keystore
 *.jks
+keystore.properties
+android/keystore/
