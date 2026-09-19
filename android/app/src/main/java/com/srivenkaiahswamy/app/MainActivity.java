@@ -1,4 +1,4 @@
-package com.venkayaswamy.app;
+package com.srivenkaiahswamy.app;
 
 import com.getcapacitor.BridgeActivity;
 

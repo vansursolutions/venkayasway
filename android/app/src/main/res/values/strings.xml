@@ -2,6 +2,6 @@
 <resources>
     <string name="app_name">Venkaiah Swamy</string>
     <string name="title_activity_main">Venkaiah Swamy</string>
-    <string name="package_name">com.venkayaswamy.app</string>
-    <string name="custom_url_scheme">com.venkayaswamy.app</string>
+    <string name="package_name">com.srivenkaiahswamy.app</string>
+    <string name="custom_url_scheme">com.srivenkaiahswamy.app</string>
 </resources>
