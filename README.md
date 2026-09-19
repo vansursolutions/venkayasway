@@ -107,3 +107,17 @@ cd backend && zip -q ../infra/api.zip app.py && cd .. && \
 aws lambda update-function-code --function-name venkaiahswamy-api --zip-file fileb://infra/api.zip
 ```
 Change infrastructure: edit `infra/gen_template.py`, run it, then `aws cloudformation update-stack … --template-body file://infra/backend.json`.
+
+## Publishing to Google Play from the command line
+
+One-time: create a service account in Google Cloud, enable the "Google Play Android Developer API",
+download its JSON key to `android/play-service-account.json` (gitignored), and invite the service
+account's email in Play Console → Users and permissions with release and store-presence rights.
+
+```
+python3 android/publish.py status                                   # what is live
+python3 android/publish.py listing                                  # push listing text + images from android/store
+python3 android/publish.py upload android/store/<bundle>.aab        # upload + roll out to production
+python3 android/publish.py upload <bundle>.aab --track internal     # or to internal testing first
+```
+Bump `versionCode` in `android/app/build.gradle` before each new bundle.

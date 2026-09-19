@@ -12,3 +12,4 @@ android/capacitor-cordova-android-plugins/build/
 *.jks
 keystore.properties
 android/keystore/
+android/play-service-account.json
