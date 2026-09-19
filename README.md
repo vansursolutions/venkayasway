@@ -73,3 +73,14 @@ Publish:
 App id: `com.venkayaswamy.app` (in `capacitor.config.json`). App name and icon: `android/app/src/main/res/`.
 To use your own icon in the app, replace the files under `android/app/src/main/res/mipmap-*`
 or use Android Studio: right-click `res` → New → Image Asset.
+
+## AWS hosting (production: venkayaswamy.com)
+
+- S3 bucket `venkayaswamy-site-030011113848` (private) holds the files in `www/`.
+- CloudFront distribution `E1H9ES2VPQGWUO` serves them over HTTPS (`d1h9gkukue41oc.cloudfront.net`).
+- ACM certificate for venkayaswamy.com + www (us-east-1).
+- Route 53 hosted zone for venkayaswamy.com holds the DNS records. The domain registrar must
+  point the domain at the Route 53 name servers (see the zone in the AWS console).
+
+Deploy: commit on main, then `./deploy.sh` (needs the AWS CLI logged in). It pushes to GitHub,
+syncs `www/` to S3 and invalidates the CloudFront cache.
