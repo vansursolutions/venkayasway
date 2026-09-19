@@ -70,7 +70,7 @@ Publish:
 3. Create the app, upload the `.aab`, fill in the store listing (screenshots, description, privacy
    policy URL — a page on venkayaswamy.com is fine), and submit for review.
 
-App id: `com.venkayaswamy.app` (in `capacitor.config.json`). App name and icon: `android/app/src/main/res/`.
+App id: `com.srivenkaiahswamy.app` (in `capacitor.config.json`). App name and icon: `android/app/src/main/res/`.
 To use your own icon in the app, replace the files under `android/app/src/main/res/mipmap-*`
 or use Android Studio: right-click `res` → New → Image Asset.
 
