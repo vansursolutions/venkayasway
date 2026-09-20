@@ -1,1 +1,1 @@
-Smoother browsing of messages and photos.
+Long messages scroll inside their card.
