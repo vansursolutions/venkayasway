@@ -303,7 +303,8 @@ progress { width: 100%; }
 @media (hover: none) and (pointer: coarse) { #msgs .msg { max-height: calc(100dvh - 200px); } }
 
 /* video tile expand + big video viewer */
-.vcar .vexpand { position: absolute; right: 8px; top: 8px; z-index: 4; width: 36px; height: 36px; border: 0; border-radius: 50%; background: rgba(0,0,0,.55); color: #fff; font-size: 1.15rem; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+.vcar .vexpand { position: absolute; right: 8px; top: 8px; z-index: 4; height: 34px; padding: 0 .7rem 0 .55rem; border: 0; border-radius: 999px; background: rgba(0,0,0,.6); color: #fff; font-family: var(--font-ui); font-size: .85rem; cursor: pointer; display: flex; align-items: center; gap: .3rem; }
+.vcar .video.playing .vtap { height: 30%; }   /* while playing, leave YouTube's controls reachable; swipe from the top strip */
 .vcar .vexpand:hover { background: var(--saffron); }
 #vlightbox { position: fixed; inset: 0; z-index: 100; background: rgba(20,10,5,.96); display: flex; flex-direction: column; align-items: center; justify-content: center; }
 #vlightbox .vl-stage { width: min(96vw, calc((100vh - 140px) * 16 / 9)); aspect-ratio: 16 / 9; overflow: hidden; position: relative; border-radius: 12px; touch-action: pan-y; }

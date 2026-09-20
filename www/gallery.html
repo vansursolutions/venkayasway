@@ -64,7 +64,7 @@
   function videoCarousel(list){
     yt.className='vcar';
     yt.innerHTML = '<div class="sw-wrap"><button class="sw-prev" aria-label="Previous">&#8249;</button><div class="sw"><div class="sw-track">'+list.map(function(v){
-      return '<div class="sw-slide vslide"><div class="video"><img class="vposter" src="https://i.ytimg.com/vi/'+v.id+'/hqdefault.jpg" alt=""><button class="vplay" aria-label="Play">&#9654;</button><div class="vtap"></div><button class="vexpand" aria-label="Expand" title="Expand">&#x2922;</button></div><p class="vtitle">'+esc(v.title)+'</p></div>';
+      return '<div class="sw-slide vslide"><div class="video"><img class="vposter" src="https://i.ytimg.com/vi/'+v.id+'/hqdefault.jpg" alt=""><button class="vplay" aria-label="Play">&#9654;</button><div class="vtap"></div><button class="vexpand" aria-label="Expand" title="Expand">&#x2922; <span class="en">Expand</span><span class="te">పెద్దగా</span></button></div><p class="vtitle">'+esc(v.title)+'</p></div>';
     }).join('')+'</div><div class="sw-dots"></div><div class="sw-count"></div></div><button class="sw-next" aria-label="Next">&#8250;</button></div>';
     var sw = yt.querySelector('.sw'), slides = Array.prototype.slice.call(sw.querySelectorAll('.vslide'));
     sw._prev = yt.querySelector('.sw-prev'); sw._next = yt.querySelector('.sw-next');
@@ -72,7 +72,7 @@
     function play(i){
       var box=slides[i].querySelector('.video');
       if (!box.querySelector('iframe')) {
-        var f=document.createElement('iframe'); f.src=ytEmbed(list[i])+'&autoplay=1'; f.allow='autoplay; accelerometer; encrypted-media; picture-in-picture'; f.allowFullscreen=true; f.title=list[i].title;
+        var f=document.createElement('iframe'); f.src=ytEmbed(list[i])+'&autoplay=1&fs=0'; f.allow='autoplay; accelerometer; encrypted-media; picture-in-picture'; f.title=list[i].title;
         box.insertBefore(f, box.querySelector('.vtap')); box.classList.add('playing');
       } else { post(i,'playVideo'); box.classList.add('playing'); }
     }
@@ -101,7 +101,7 @@
     function fill(){
       W=stage.clientWidth;
       sl[0].innerHTML=poster(at(idx-1)); sl[2].innerHTML=poster(at(idx+1));
-      sl[1].innerHTML='<iframe src="'+ytEmbed(at(idx))+'&autoplay=1" title="'+esc(at(idx).title)+'" allow="autoplay; accelerometer; encrypted-media; picture-in-picture; fullscreen" allowfullscreen></iframe><div class="vl-grip"></div>';
+      sl[1].innerHTML='<iframe src="'+ytEmbed(at(idx))+'&autoplay=1&fs=1" title="'+esc(at(idx).title)+'" allow="autoplay; accelerometer; encrypted-media; picture-in-picture; fullscreen" allowfullscreen></iframe><div class="vl-grip"></div>';
       box.querySelector('.cap').textContent=at(idx).title; box.querySelector('.count').textContent=(((idx%list.length)+list.length)%list.length+1)+' / '+list.length;
       setX(0,false);
     }
