@@ -1,1 +1,1 @@
-Admin page fixes.
+Smoother browsing of messages and photos.
