@@ -1,6 +1,6 @@
 """Generates infra/backend.json (CloudFormation) for the API, auth, tables and media bucket."""
 import json, sys, re
-ORIGINS = ["https://srivenkaiahswamy.com", "https://www.srivenkaiahswamy.com", "https://venkayaswamy.com", "https://www.venkayaswamy.com",
+ORIGINS = ["https://srivenkaiahswamy.com", "https://www.srivenkaiahswamy.com", "https://bhagavansrivenkaiahswamy.com", "https://www.bhagavansrivenkaiahswamy.com", "https://bhagavansrivenkaiahswamy.org", "https://www.bhagavansrivenkaiahswamy.org", "https://venkayaswamy.com", "https://www.venkayaswamy.com",
            "http://localhost:3000", "https://localhost"]
 PUBLIC = [("GET", "/events"), ("GET", "/media"), ("GET", "/sponsors/dates"), ("POST", "/sponsors")]
 AUTH = [("POST", "/events"), ("PUT", "/events/{id}"), ("DELETE", "/events/{id}"), ("POST", "/media/upload-url"), ("POST", "/media"),

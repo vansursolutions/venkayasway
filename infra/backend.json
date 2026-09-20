@@ -228,6 +228,10 @@
        "AllowedOrigins": [
         "https://srivenkaiahswamy.com",
         "https://www.srivenkaiahswamy.com",
+        "https://bhagavansrivenkaiahswamy.com",
+        "https://www.bhagavansrivenkaiahswamy.com",
+        "https://bhagavansrivenkaiahswamy.org",
+        "https://www.bhagavansrivenkaiahswamy.org",
         "https://venkayaswamy.com",
         "https://www.venkayaswamy.com",
         "http://localhost:3000",
@@ -462,6 +466,10 @@
      "AllowOrigins": [
       "https://srivenkaiahswamy.com",
       "https://www.srivenkaiahswamy.com",
+      "https://bhagavansrivenkaiahswamy.com",
+      "https://www.bhagavansrivenkaiahswamy.com",
+      "https://bhagavansrivenkaiahswamy.org",
+      "https://www.bhagavansrivenkaiahswamy.org",
       "https://venkayaswamy.com",
       "https://www.venkayaswamy.com",
       "http://localhost:3000",
