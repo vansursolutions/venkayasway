@@ -158,7 +158,7 @@
     Array.prototype.forEach.call(document.querySelectorAll('.panel'), function(p){ p.classList.toggle('active', p.id==='p-'+t); });
     ({events: loadEvents, sponsors: loadSponsors, media: loadMedia, messages: loadMessages, users: loadUsers})[t]();
   }
-  $('tabs').onclick = function(e){ var t = e.target.getAttribute('data-t'); if (t) tab(t); };
+  $('tabs').onclick = function(e){ var b = e.target.closest('button'); var t = b && b.getAttribute('data-t'); if (t) tab(t); };
   function fail(id){ return function(err){ msg(id, err.message || String(err)); if (/401|403/.test(err.message)) { VS.clearToken(); show(); } }; }
 
   // ---- events ----
@@ -210,7 +210,7 @@
       }).join('') || '<p class="muted">Nothing uploaded yet.</p>';
     }).catch(fail('upMsg'));
   }
-  $('mediaList').onclick = function(e){ var id = e.target.getAttribute('data-del'); if (id && confirm('Delete this item?')) VS.api('DELETE','/media/'+id).then(loadMedia).catch(fail('upMsg')); };
+  $('mediaList').onclick = function(e){ var id = e.target.closest('button') && e.target.closest('button').getAttribute('data-del'); if (id && confirm('Delete this item?')) VS.api('DELETE','/media/'+id).then(loadMedia).catch(fail('upMsg')); };
   function putFile(url, file, type, onProgress){
     return new Promise(function(res, rej){
       var x = new XMLHttpRequest(); x.open('PUT', url); x.setRequestHeader('Content-Type', type);
@@ -249,7 +249,7 @@
   $('capVideo').onchange = function(){ handleFiles(this); };
   $('capFiles').onchange = function(){ handleFiles(this); };
   pendingBox.onclick = function(e){
-    var act = e.target.getAttribute('data-act'); if (!act) return;
+    var btn = e.target.closest('button'); var act = btn && btn.getAttribute('data-act'); if (!act) return;
     var fig = e.target.closest('figure'), file = fig._file;
     if (act === 'discard') { fig.remove(); return; }
     var btns = fig.querySelectorAll('button'), prog = fig.querySelector('progress'), st = fig.querySelector('.st'), title = fig.querySelector('input').value;
