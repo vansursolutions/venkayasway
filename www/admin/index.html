@@ -73,14 +73,15 @@
       </div>
 
       <div class="panel" id="p-media">
-        <h2 style="margin-top:0">Upload photos &amp; videos</h2>
-        <form id="upForm" class="contact">
-          <div><label for="upTitle">Caption (optional)</label><input id="upTitle" maxlength="120"></div>
-          <div><label for="upFiles">Files (JPG, PNG, WebP, MP4, MOV, WebM)</label><input id="upFiles" type="file" multiple accept="image/jpeg,image/png,image/webp,video/mp4,video/quicktime,video/webm" required></div>
-          <button class="btn" type="submit" id="upBtn">Upload</button>
-          <progress id="upProg" value="0" max="100" hidden></progress>
-          <div id="upMsg"></div>
-        </form>
+        <h2 style="margin-top:0">Add photos &amp; videos</h2>
+        <p class="muted">On a phone, the first two buttons open the camera. Each capture shows below for review; press <b>Approve</b> to publish it to the gallery.</p>
+        <div class="btn-row" style="justify-content:flex-start;margin-bottom:1rem">
+          <label class="btn" style="cursor:pointer">📷 Take photo<input type="file" accept="image/*" capture="environment" id="capPhoto" hidden></label>
+          <label class="btn" style="cursor:pointer">🎥 Record video<input type="file" accept="video/*" capture="environment" id="capVideo" hidden></label>
+          <label class="btn outline" style="cursor:pointer">📁 Choose files<input type="file" accept="image/*,video/mp4,video/quicktime,video/webm" multiple id="capFiles" hidden></label>
+        </div>
+        <div id="pending" class="gallery"></div>
+        <div id="upMsg"></div>
         <h2>Gallery items</h2>
         <div class="gallery" id="mediaList"></div>
       </div>
@@ -193,29 +194,58 @@
     }).catch(fail('upMsg'));
   }
   $('mediaList').onclick = function(e){ var id = e.target.getAttribute('data-del'); if (id && confirm('Delete this item?')) VS.api('DELETE','/media/'+id).then(loadMedia).catch(fail('upMsg')); };
-  function putFile(url, file, onProgress){
+  function putFile(url, file, type, onProgress){
     return new Promise(function(res, rej){
-      var x = new XMLHttpRequest(); x.open('PUT', url); x.setRequestHeader('Content-Type', file.type);
+      var x = new XMLHttpRequest(); x.open('PUT', url); x.setRequestHeader('Content-Type', type);
       x.upload.onprogress = function(ev){ if (ev.lengthComputable) onProgress(ev.loaded/ev.total); };
       x.onload = function(){ x.status < 300 ? res() : rej(new Error('Upload failed ('+x.status+')')); }; x.onerror = function(){ rej(new Error('Upload failed')); };
       x.send(file);
     });
   }
-  $('upForm').onsubmit = function(e){
-    e.preventDefault();
-    var files = Array.prototype.slice.call($('upFiles').files), title = $('upTitle').value, prog = $('upProg');
-    if (!files.length) return;
-    $('upBtn').disabled = true; prog.hidden = false; msg('upMsg','');
-    var done = 0;
-    files.reduce(function(p, f){
-      return p.then(function(){
-        return VS.api('POST','/media/upload-url',{contentType:f.type}).then(function(r){
-          return putFile(r.uploadUrl, f, function(frac){ prog.value = Math.round(((done+frac)/files.length)*100); })
-            .then(function(){ return VS.api('POST','/media',{id:r.id,key:r.key,contentType:f.type,title:title}); });
-        }).then(function(){ done++; });
+  // Shrink photos on the device (max 2000px, JPEG) so uploads are quick and HEIC from iPhones becomes JPEG.
+  function toJpeg(file){
+    return new Promise(function(res){
+      var img = new Image(); var url = URL.createObjectURL(file);
+      img.onload = function(){
+        var max = 2000, w = img.naturalWidth, h = img.naturalHeight, k = Math.min(1, max / Math.max(w, h));
+        var c = document.createElement('canvas'); c.width = Math.round(w*k); c.height = Math.round(h*k);
+        c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+        c.toBlob(function(b){ URL.revokeObjectURL(url); res(b ? { blob: b, type: 'image/jpeg' } : { blob: file, type: file.type }); }, 'image/jpeg', 0.88);
+      };
+      img.onerror = function(){ URL.revokeObjectURL(url); res({ blob: file, type: file.type }); };
+      img.src = url;
+    });
+  }
+  var pendingBox = $('pending'), pendingN = 0;
+  function addPending(file){
+    var isVideo = file.type.indexOf('video/') === 0, id = 'p' + (++pendingN), url = URL.createObjectURL(file);
+    var fig = document.createElement('figure'); fig.id = id;
+    fig.innerHTML = (isVideo ? '<video src="'+url+'" controls playsinline style="width:100%;aspect-ratio:4/3;background:#000"></video>' : '<img src="'+url+'" alt="">') +
+      '<figcaption><input placeholder="Caption (optional)" maxlength="120" style="margin-bottom:.5rem">' +
+      '<progress value="0" max="100" hidden></progress>' +
+      '<div class="btn-row" style="justify-content:flex-start"><button class="btn small" data-act="approve">✔ Approve</button> <button class="btn small outline" data-act="discard">Discard</button></div>' +
+      '<div class="st muted"></div></figcaption>';
+    fig._file = file; pendingBox.prepend(fig);
+  }
+  function handleFiles(input){ Array.prototype.forEach.call(input.files, addPending); input.value = ''; }
+  $('capPhoto').onchange = function(){ handleFiles(this); };
+  $('capVideo').onchange = function(){ handleFiles(this); };
+  $('capFiles').onchange = function(){ handleFiles(this); };
+  pendingBox.onclick = function(e){
+    var act = e.target.getAttribute('data-act'); if (!act) return;
+    var fig = e.target.closest('figure'), file = fig._file;
+    if (act === 'discard') { fig.remove(); return; }
+    var btns = fig.querySelectorAll('button'), prog = fig.querySelector('progress'), st = fig.querySelector('.st'), title = fig.querySelector('input').value;
+    Array.prototype.forEach.call(btns, function(b){ b.disabled = true; }); prog.hidden = false; st.textContent = 'Preparing…';
+    var prep = file.type.indexOf('image/') === 0 ? toJpeg(file) : Promise.resolve({ blob: file, type: file.type });
+    prep.then(function(p){
+      st.textContent = 'Uploading…';
+      return VS.api('POST','/media/upload-url',{contentType:p.type}).then(function(r){
+        return putFile(r.uploadUrl, p.blob, p.type, function(f){ prog.value = Math.round(f*100); })
+          .then(function(){ return VS.api('POST','/media',{id:r.id,key:r.key,contentType:p.type,title:title}); });
       });
-    }, Promise.resolve()).then(function(){ msg('upMsg', done+' file(s) uploaded.', true); $('upForm').reset(); loadMedia(); })
-      .catch(fail('upMsg')).then(function(){ $('upBtn').disabled=false; prog.hidden=true; prog.value=0; });
+    }).then(function(){ fig.remove(); msg('upMsg','Published to the gallery.',true); loadMedia(); })
+      .catch(function(err){ st.textContent = 'Failed: ' + (err.message || err); Array.prototype.forEach.call(btns, function(b){ b.disabled = false; }); prog.hidden = true; });
   };
 
   // ---- users ----
