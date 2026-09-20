@@ -292,6 +292,36 @@ def delete_user(event, username):
     return resp(200, {"deleted": username})
 
 
+# ---------- youtube ----------
+YT_CHANNEL = "UCrNrbCerWLBjv_raGBn9oxQ"
+_yt_cache = {"t": 0, "items": []}
+
+
+def youtube_videos():
+    import time, urllib.request, html
+    if time.time() - _yt_cache["t"] < 3600 and _yt_cache["items"]:
+        return resp(200, _yt_cache["items"])
+    items = []
+    try:
+        req = urllib.request.Request(f"https://www.youtube.com/playlist?list=UU{YT_CHANNEL[2:]}",
+                                     headers={"User-Agent": "Mozilla/5.0", "Cookie": "CONSENT=YES+1", "Accept-Language": "en"})
+        page = urllib.request.urlopen(req, timeout=8).read().decode("utf-8", "ignore")
+        seen = []
+        for vid in re.findall(r'"videoId":"([A-Za-z0-9_-]{11})"', page):
+            if vid not in seen:
+                seen.append(vid)
+        titles = {}
+        for m in re.finditer(r'"videoId":"([A-Za-z0-9_-]{11})".{0,3000}?"title":\{(?:"runs":\[\{"text"|"content"):"((?:[^"\\]|\\.)*)"', page):
+            titles.setdefault(m.group(1), m.group(2).encode().decode("unicode_escape", "ignore"))
+        items = [{"id": v, "title": html.unescape(titles.get(v, ""))} for v in seen[:24]]
+        if items:
+            _yt_cache.update(t=time.time(), items=items)
+    except Exception as e:
+        print("YOUTUBE FAILED", repr(e))
+        items = _yt_cache["items"]
+    return resp(200, items)
+
+
 # ---------- router ----------
 def handler(event, context):
     rk = event.get("routeKey", "")
@@ -302,6 +332,7 @@ def handler(event, context):
         if rk == "PUT /events/{id}": return save_event(event, p["id"])
         if rk == "DELETE /events/{id}": return delete_event(event, p["id"])
         if rk == "GET /media": return list_media()
+        if rk == "GET /youtube": return youtube_videos()
         if rk == "POST /media/upload-url": return upload_url(event)
         if rk == "POST /media": return register_media(event)
         if rk == "DELETE /media/{id}": return delete_media(event, p["id"])

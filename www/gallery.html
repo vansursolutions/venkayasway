@@ -33,10 +33,14 @@
       </div>
     </div>
 
+    <h2><span class="en">Latest videos</span><span class="te">తాజా వీడియోలు</span></h2>
+    <div class="videos" id="ytVideos"><p class="muted"><span class="en">Loading videos…</span><span class="te">వీడియోలు లోడ్ అవుతున్నాయి…</span></p></div>
+    <p><a class="yt-sub" href="https://www.youtube.com/@bhagavansrivenkaiahswamyma2343/videos" target="_blank" rel="noopener">&#9654; <span class="en">All videos on YouTube</span><span class="te">యూట్యూబ్‌లో అన్ని వీడియోలు</span></a></p>
+
     <h2><span class="en">Photos</span><span class="te">ఫోటోలు</span></h2>
     <div class="gallery" id="photos"></div>
 
-    <h2><span class="en">Videos</span><span class="te">వీడియోలు</span></h2>
+    <h2><span class="en">Uploaded videos</span><span class="te">అప్‌లోడ్ చేసిన వీడియోలు</span></h2>
     <div class="videos" id="videos"></div>
     <p class="muted"><span class="en">Temple volunteers can add photos and videos from the admin page.</span><span class="te">ఆలయ వాలంటీర్లు అడ్మిన్ పేజీ నుండి ఫోటోలు, వీడియోలు జోడించవచ్చు.</span></p>
   </div>
@@ -46,10 +50,16 @@
 (function(){
   function esc(t){ return String(t||'').replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
   var ph = document.getElementById('photos'), vd = document.getElementById('videos');
-  var fallback = [1,2,3,4,5,6].map(function(i){ return '<figure><img src="images/photo-'+i+'.jpg" alt="" loading="lazy"><figcaption class="placeholder">Placeholder photo '+i+'</figcaption></figure>'; }).join('');
+  var TEMPLE = [["temple-entrance","Temple entrance, Kollamitta","ఆలయ ప్రవేశం, కొల్లమిట్ట"],["pavalimpu-seva","Pavalimpu seva at the sanctum","గర్భగుడిలో పవళింపు సేవ"],["sanctum-garlands","Swamy decorated with garlands","పూలమాలలతో అలంకరించిన స్వామి"],["annadanam","Saturday annadanam","శనివారం అన్నదానం"],["bhajans","Bhajans","భజనలు"],["pallaki-seva","Pallaki seva procession","పల్లకి సేవ ఊరేగింపు"]];
+  var fallback = TEMPLE.map(function(t){ return '<figure><a href="images/'+t[0]+'.jpg" target="_blank"><img src="images/'+t[0]+'.jpg" alt="'+esc(t[1])+'" loading="lazy"></a><figcaption><span class="en">'+esc(t[1])+'</span><span class="te">'+esc(t[2])+'</span></figcaption></figure>'; }).join('');
+  var yt = document.getElementById('ytVideos');
+  function ytGrid(list){
+    yt.innerHTML = list.length ? list.slice(0,12).map(function(v){ return '<div><div class="video"><iframe src="https://www.youtube-nocookie.com/embed/'+v.id+'" title="'+esc(v.title)+'" loading="lazy" allow="accelerometer; encrypted-media; picture-in-picture" allowfullscreen></iframe></div><p class="muted" style="margin:.3rem 0 0;font-size:.85rem">'+esc(v.title)+'</p></div>'; }).join('') : '';
+  }
+  if (VS.config.apiUrl) VS.api('GET','/youtube').then(ytGrid).catch(function(){ yt.innerHTML=''; }); else yt.innerHTML='';
   function render(list){
     var p = list.filter(function(m){return m.type==='photo';}), v = list.filter(function(m){return m.type==='video';});
-    ph.innerHTML = p.length ? p.map(function(m){ var u=VS.mediaUrl(m.key); return '<figure><a href="'+u+'" target="_blank"><img src="'+u+'" alt="'+esc(m.title)+'" loading="lazy"></a>'+(m.title?'<figcaption>'+esc(m.title)+'</figcaption>':'')+'</figure>'; }).join('') : fallback;
+    ph.innerHTML = fallback + p.map(function(m){ var u=VS.mediaUrl(m.key); return '<figure><a href="'+u+'" target="_blank"><img src="'+u+'" alt="'+esc(m.title)+'" loading="lazy"></a>'+(m.title?'<figcaption>'+esc(m.title)+'</figcaption>':'')+'</figure>'; }).join('');
     vd.innerHTML = v.length ? v.map(function(m){ return '<div><div class="video"><video src="'+VS.mediaUrl(m.key)+'" controls preload="metadata" style="position:absolute;inset:0;width:100%;height:100%"></video></div>'+(m.title?'<p class="muted" style="margin:.3rem 0 0">'+esc(m.title)+'</p>':'')+'</div>'; }).join('') :
       '<p class="muted"><span class="en">No videos uploaded yet. See our YouTube channel above.</span><span class="te">ఇంకా వీడియోలు అప్‌లోడ్ కాలేదు. పైన మా యూట్యూబ్ ఛానల్ చూడండి.</span></p>';
   }

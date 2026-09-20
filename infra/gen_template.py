@@ -1,5 +1,5 @@
 """Generates infra/backend.json (CloudFormation) for the API, auth, tables and media bucket."""
-import json, sys
+import json, sys, re
 ORIGINS = ["https://srivenkaiahswamy.com", "https://www.srivenkaiahswamy.com", "https://venkayaswamy.com", "https://www.venkayaswamy.com",
            "http://localhost:3000", "https://localhost"]
 PUBLIC = [("GET", "/events"), ("GET", "/media"), ("GET", "/sponsors/dates"), ("POST", "/sponsors")]
@@ -61,9 +61,12 @@ def route(name, method, path, auth):
     if auth:
         p["AuthorizationType"] = "JWT"; p["AuthorizerId"] = {"Ref": "Authorizer"}
     R[name] = {"Type": "AWS::ApiGatewayV2::Route", "Properties": p}
+# Route logical names are positional; never reorder PUBLIC/AUTH. Add new routes to EXTRA only.
+EXTRA = [("GET", "/youtube", False)]
 i = 0
 for m, p in PUBLIC: i += 1; route(f"RoutePub{i}", m, p, False)
 for m, p in AUTH: i += 1; route(f"RouteAuth{i}", m, p, True)
+for n, (m, p, a) in enumerate(EXTRA, 1): route(f"RouteExtra{n}", m, p, a)
 
 T = {"AWSTemplateFormatVersion": "2010-09-09", "Description": "Sri Venkaiah Swamy Temple site backend: auth, API, tables, media",
  "Parameters": {"CodeBucket": {"Type": "String"}, "CodeKey": {"Type": "String"}, "DistributionId": {"Type": "String"},

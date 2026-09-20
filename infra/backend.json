@@ -727,6 +727,18 @@
      "Ref": "Authorizer"
     }
    }
+  },
+  "RouteExtra1": {
+   "Type": "AWS::ApiGatewayV2::Route",
+   "Properties": {
+    "ApiId": {
+     "Ref": "Api"
+    },
+    "RouteKey": "GET /youtube",
+    "Target": {
+     "Fn::Sub": "integrations/${Integration}"
+    }
+   }
   }
  },
  "Outputs": {
