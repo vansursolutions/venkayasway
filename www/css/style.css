@@ -295,3 +295,8 @@ progress { width: 100%; }
 .photo-carousel img { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; cursor: zoom-in; display: block; -webkit-user-drag: none; }
 .photo-carousel figcaption { padding: .5rem .7rem; font-size: .85rem; font-family: var(--font-ui); color: var(--ink-soft); }
 .sw .sw-slide .msg { height: 100%; box-sizing: border-box; }
+/* message cards: never taller than the viewport; the message text scrolls inside the card */
+#msgs .msg { max-height: calc(100vh - 220px); min-height: 240px; }
+#msgs .msg .body { overflow-y: auto; -webkit-overflow-scrolling: touch; padding-right: .4rem; overscroll-behavior: contain; }
+#msgs .msg .body::-webkit-scrollbar { width: 6px; } #msgs .msg .body::-webkit-scrollbar-thumb { background: var(--line); border-radius: 3px; }
+@media (hover: none) and (pointer: coarse) { #msgs .msg { max-height: calc(100dvh - 200px); } }
