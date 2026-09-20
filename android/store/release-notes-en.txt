@@ -1,1 +1,1 @@
-Fixes the volunteer login page.
+Volunteers can take photos and record videos from the app and publish them to the gallery.
