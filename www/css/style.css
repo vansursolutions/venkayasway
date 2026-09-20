@@ -245,3 +245,20 @@ progress { width: 100%; }
 #lightbox .prev { left: .6rem; top: 50%; transform: translateY(-50%); }
 #lightbox .next { right: .6rem; top: 50%; transform: translateY(-50%); }
 @media (hover: none) and (pointer: coarse) { #lightbox .prev, #lightbox .next { display: none; } }  /* phones: swipe instead of arrows */
+
+/* video carousel (phones) */
+.only-touch { display: none; }
+@media (hover: none) and (pointer: coarse) { .only-touch { display: block; } }
+.vcar { position: relative; overflow: hidden; width: 100%; touch-action: pan-y; }
+.vcar .vtrack { display: flex; will-change: transform; }
+.vcar .vslide { flex: 0 0 auto; padding-inline: 2px; box-sizing: border-box; }
+.vcar .video { position: relative; }
+.vcar .vposter { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.vcar .vplay { position: absolute; left: 50%; top: 50%; transform: translate(-50%,-50%); width: 68px; height: 48px; border: 0; border-radius: 14px; background: #ff0000; color: #fff; font-size: 1.4rem; display: flex; align-items: center; justify-content: center; z-index: 2; box-shadow: 0 4px 14px rgba(0,0,0,.4); }
+.vcar .vtap { position: absolute; left: 0; right: 0; top: 0; height: 72%; z-index: 3; }           /* captures swipes and taps; leaves YouTube's control bar reachable */
+.vcar .video.playing .vposter, .vcar .video.playing .vplay { display: none; }
+.vcar .vtitle { margin: .5rem .2rem 0; font-family: var(--font-ui); font-size: .9rem; color: var(--ink-soft); min-height: 2.6em; }
+.vcar .vdots { display: flex; gap: 6px; justify-content: center; margin-top: .5rem; }
+.vcar .vdots i { width: 7px; height: 7px; border-radius: 50%; background: var(--line); transition: background .25s, transform .25s; }
+.vcar .vdots i.on { background: var(--saffron); transform: scale(1.3); }
+.vcar .vcount { text-align: center; font-family: var(--font-ui); font-size: .78rem; color: var(--ink-soft); margin-top: .25rem; }

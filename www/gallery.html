@@ -34,6 +34,7 @@
     </div>
 
     <h2><span class="en">Latest videos</span><span class="te">తాజా వీడియోలు</span></h2>
+    <p class="muted only-touch"><span class="en">Swipe left or right to move between videos. Tap a video to play.</span><span class="te">వీడియోల మధ్య ఎడమ/కుడి స్వైప్ చేయండి. ప్లే చేయడానికి వీడియోను నొక్కండి.</span></p>
     <div class="videos" id="ytVideos"><p class="muted"><span class="en">Loading videos…</span><span class="te">వీడియోలు లోడ్ అవుతున్నాయి…</span></p></div>
     <p><a class="yt-sub" href="https://www.youtube.com/@bhagavansrivenkaiahswamyma2343/videos" target="_blank" rel="noopener">&#9654; <span class="en">All videos on YouTube</span><span class="te">యూట్యూబ్‌లో అన్ని వీడియోలు</span></a></p>
 
@@ -53,8 +54,57 @@
   var TEMPLE = [["murti-saffron","Swamy in saffron","కాషాయ వస్త్రంలో స్వామి"],["sanctum-om-narayana","Om Narayana Adi Narayana: the sanctum","ఓం నారాయణ ఆది నారాయణ: గర్భగుడి"],["murti-yellow-flowers","Swamy in yellow, with flower alankaram","పసుపు వస్త్రంలో స్వామి, పూల అలంకారం"],["murti-white-floral","Swamy in white, floral alankaram","తెల్లని వస్త్రంలో స్వామి, పూల అలంకారం"],["aradhana-floral-arch","Floral arch on a festival day","ఉత్సవ దినాన పూల తోరణం"],["murti-yellow-garland","Swamy with garlands","పూలమాలలతో స్వామి"],["murti-white","Swamy in white","తెల్లని వస్త్రంలో స్వామి"],["sanctum-wide","The sanctum during evening pooja","సాయంకాల పూజలో గర్భగుడి"],["temple-entrance","Temple entrance, Kollamitta","ఆలయ ప్రవేశం, కొల్లమిట్ట"],["pavalimpu-seva","Pavalimpu seva at the sanctum","గర్భగుడిలో పవళింపు సేవ"],["sanctum-garlands","Swamy decorated with garlands","పూలమాలలతో అలంకరించిన స్వామి"],["annadanam","Saturday annadanam","శనివారం అన్నదానం"],["bhajans","Bhajans","భజనలు"],["pallaki-seva","Pallaki seva procession","పల్లకి సేవ ఊరేగింపు"]];
   var fallback = TEMPLE.map(function(t){ return '<figure><a href="images/'+t[0]+'.jpg" target="_blank"><img src="images/'+t[0]+'.jpg" alt="'+esc(t[1])+'" loading="lazy"></a><figcaption><span class="en">'+esc(t[1])+'</span><span class="te">'+esc(t[2])+'</span></figcaption></figure>'; }).join('');
   var yt = document.getElementById('ytVideos');
+  var TOUCH = window.matchMedia('(hover: none) and (pointer: coarse)').matches;
+  function ytEmbed(v){ return 'https://www.youtube-nocookie.com/embed/'+v.id+'?enablejsapi=1&playsinline=1&rel=0&modestbranding=1'; }
   function ytGrid(list){
-    yt.innerHTML = list.length ? list.slice(0,12).map(function(v){ return '<div><div class="video"><iframe src="https://www.youtube-nocookie.com/embed/'+v.id+'" title="'+esc(v.title)+'" loading="lazy" allow="accelerometer; encrypted-media; picture-in-picture" allowfullscreen></iframe></div><p class="muted" style="margin:.3rem 0 0;font-size:.85rem">'+esc(v.title)+'</p></div>'; }).join('') : '';
+    if (!list.length) { yt.innerHTML=''; return; }
+    if (TOUCH) { videoCarousel(list.slice(0,12)); return; }
+    yt.innerHTML = list.slice(0,12).map(function(v){ return '<div><div class="video"><iframe src="'+ytEmbed(v)+'" title="'+esc(v.title)+'" loading="lazy" allow="accelerometer; encrypted-media; picture-in-picture" allowfullscreen></iframe></div><p class="muted" style="margin:.3rem 0 0;font-size:.85rem">'+esc(v.title)+'</p></div>'; }).join('');
+  }
+  // Phone carousel: one video per screen, finger-tracking swipe with eased snap; tap on the video plays it
+  function videoCarousel(list){
+    var EASE='cubic-bezier(0.22, 0.61, 0.36, 1)', DUR=420, idx=0, W=0, dx=0, sx=0, sy=0, t0=0, dragging=false, horiz=null, animating=false;
+    yt.className='vcar'; yt.innerHTML='<div class="vtrack">'+list.map(function(v,i){
+      return '<div class="vslide"><div class="video"><img class="vposter" src="https://i.ytimg.com/vi/'+v.id+'/hqdefault.jpg" alt=""><button class="vplay" aria-label="Play">&#9654;</button><div class="vtap"></div></div><p class="vtitle">'+esc(v.title)+'</p></div>';
+    }).join('')+'</div><div class="vdots">'+list.map(function(_,i){ return '<i'+(i===0?' class="on"':'')+'></i>'; }).join('')+'</div><div class="vcount">1 / '+list.length+'</div>';
+    var track=yt.querySelector('.vtrack'), slides=Array.prototype.slice.call(track.children), dots=Array.prototype.slice.call(yt.querySelectorAll('.vdots i'));
+    function measure(){ W=yt.clientWidth; slides.forEach(function(sl){ sl.style.width=W+'px'; }); }
+    function setX(x, animate){ track.style.transition = animate ? 'transform '+DUR+'ms '+EASE : 'none'; track.style.transform='translate3d('+(-idx*W+x)+'px,0,0)'; }
+    function post(i, func){ var f=slides[i].querySelector('iframe'); if (f && f.contentWindow) f.contentWindow.postMessage(JSON.stringify({event:'command',func:func,args:[]}),'*'); }
+    function play(i){
+      var box=slides[i].querySelector('.video');
+      if (!box.querySelector('iframe')) {
+        var f=document.createElement('iframe'); f.src=ytEmbed(list[i])+'&autoplay=1'; f.allow='autoplay; accelerometer; encrypted-media; picture-in-picture'; f.allowFullscreen=true; f.title=list[i].title;
+        box.insertBefore(f, box.querySelector('.vtap')); box.classList.add('playing');
+      } else { post(i,'playVideo'); box.classList.add('playing'); }
+    }
+    function pause(i){ var box=slides[i].querySelector('.video'); if (box.querySelector('iframe')) { post(i,'pauseVideo'); box.classList.remove('playing'); } }
+    function go(dir){
+      if (animating) return; var n=Math.max(0, Math.min(list.length-1, idx+dir));
+      if (n===idx) { setX(0,true); return; }
+      pause(idx); animating=true; idx=n; setX(0,true); dots.forEach(function(d,i){ d.classList.toggle('on', i===idx); }); yt.querySelector('.vcount').textContent=(idx+1)+' / '+list.length;
+      setTimeout(function(){ animating=false; }, DUR);
+    }
+    measure(); setX(0,false); window.addEventListener('resize', function(){ measure(); setX(0,false); });
+    track.addEventListener('touchstart', function(e){ if (animating||e.touches.length!==1) return; sx=e.touches[0].clientX; sy=e.touches[0].clientY; dx=0; t0=Date.now(); dragging=true; horiz=null; setX(0,false); }, {passive:true});
+    track.addEventListener('touchmove', function(e){
+      if (!dragging) return; var mx=e.touches[0].clientX-sx, my=e.touches[0].clientY-sy;
+      if (horiz===null && (Math.abs(mx)>6||Math.abs(my)>6)) horiz=Math.abs(mx)>Math.abs(my);
+      if (!horiz) return; e.preventDefault();
+      dx = mx; if ((idx===0 && mx>0) || (idx===list.length-1 && mx<0)) dx = mx*0.3;   // rubber-band at the ends
+      setX(dx,false);
+    }, {passive:false});
+    track.addEventListener('touchend', function(e){
+      if (!dragging) return; dragging=false;
+      var dt=Math.max(1, Date.now()-t0), v=Math.abs(dx)/dt;
+      if (horiz && (Math.abs(dx)>W*0.22 || v>0.45)) { go(dx<0?1:-1); return; }
+      setX(0,true);
+      // a tap (no real movement) on the video area plays / pauses it
+      if (!horiz && Math.abs(dx)<6 && dt<400) { var tap=e.target.closest && e.target.closest('.vtap, .vplay, .vposter'); if (tap) { var sl=tap.closest('.vslide'), i=slides.indexOf(sl); if (sl.querySelector('.video').classList.contains('playing')) pause(i); else play(i); } }
+    });
+    track.addEventListener('touchcancel', function(){ dragging=false; setX(0,true); });
+    // mouse fallback (desktop testing)
+    yt.addEventListener('click', function(e){ var t=e.target.closest && e.target.closest('.vplay, .vposter'); if (t && !TOUCH) { play(slides.indexOf(t.closest('.vslide'))); } });
   }
   if (VS.config.apiUrl) VS.api('GET','/youtube').then(ytGrid).catch(function(){ yt.innerHTML=''; }); else yt.innerHTML='';
   function render(list){
