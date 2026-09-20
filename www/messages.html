@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en" data-lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Swamy's Messages – Sri Venkaiah Swamy Temple, Sullurupeta</title>
+<meta name="description" content="Messages and teachings shared by the temple, in Telugu and English.">
+<meta name="theme-color" content="#7a1f1f">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/favicon.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif:wght@400;600&family=Noto+Serif+Telugu:wght@400;600&family=Noto+Sans:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css?v=1789887332">
+<script src="js/lang-init.js?v=1789887332"></script>
+<script src="js/config.js?v=1789887332"></script>
+<script src="js/api.js?v=1789887332"></script>
+</head>
+<body>
+<main class="section">
+  <div class="container">
+    <h1><span class="en">Swamy's Messages</span><span class="te">స్వామి సందేశాలు</span></h1>
+    <p><span class="en">Messages, sayings and reflections shared by the temple. Each message is available in Telugu and English; use the language button in the header to switch.</span>
+       <span class="te">ఆలయం పంచుకునే సందేశాలు, సూక్తులు, భావనలు. ప్రతి సందేశం తెలుగు, ఇంగ్లీషులో లభ్యం; మార్చడానికి హెడర్‌లోని భాషా బటన్ వాడండి.</span></p>
+    <p class="muted only-touch"><span class="en">Swipe left or right to read the next message.</span><span class="te">తదుపరి సందేశం కోసం ఎడమ/కుడి స్వైప్ చేయండి.</span></p>
+    <div id="msgs"><p class="muted"><span class="en">Loading…</span><span class="te">లోడ్ అవుతోంది…</span></p></div>
+  </div>
+</main>
+<script src="js/site.js?v=1789887332"></script>
+<script>
+(function(){
+  var box = document.getElementById('msgs'), TOUCH = window.matchMedia('(hover: none) and (pointer: coarse)').matches, data = [];
+  function esc(t){ return String(t||'').replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
+  function card(m){
+    var L = VS.lang(), other = L === 'en' ? 'te' : 'en';
+    var title = m['title_'+L] || m['title_'+other], body = m['body_'+L] || m['body_'+other];
+    var translated = m.source_lang && m.source_lang !== L && m['body_'+L];
+    var when = (m.created||'').slice(0,10);
+    return '<div class="msg"><h3>'+esc(title)+'</h3><div class="when">'+esc(VS.fmtDate(when,{day:'numeric',month:'long',year:'numeric'}))+'</div><div class="body">'+esc(body)+'</div>' +
+      (translated ? '<div class="tr">'+(L==='en' ? 'Translated automatically from Telugu. Switch to తెలుగు for the original.' : 'ఇంగ్లీషు నుండి స్వయంచాలకంగా అనువదించబడింది. అసలు కోసం English ఎంచుకోండి.')+'</div>' : '') + '</div>';
+  }
+  function render(){
+    if (!data.length) { box.innerHTML = '<p class="muted"><span class="en">No messages posted yet.</span><span class="te">ఇంకా సందేశాలు లేవు.</span></p>'; return; }
+    if (TOUCH && data.length > 1) {
+      box.innerHTML = '<div class="sw"><div class="sw-track">'+data.map(function(m){ return '<div class="sw-slide">'+card(m)+'</div>'; }).join('')+'</div><div class="sw-dots"></div><div class="sw-count"></div></div>';
+      VS.swipeCarousel(box.querySelector('.sw'));
+    } else {
+      box.innerHTML = '<div class="msg-grid">'+data.map(card).join('')+'</div>';
+    }
+  }
+  VS.api('GET','/messages').then(function(list){ data = list; render(); }).catch(function(){ box.innerHTML='<p class="muted">Could not load messages.</p>'; });
+  // re-render when the language button is pressed so the right version shows
+  new MutationObserver(function(){ if (data.length) render(); }).observe(document.documentElement, { attributes: true, attributeFilter: ['data-lang'] });
+})();
+</script>
+</body>
+</html>

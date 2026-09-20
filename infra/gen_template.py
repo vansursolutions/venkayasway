@@ -23,7 +23,7 @@ R = {
    "AccessTokenValidity": 12, "IdTokenValidity": 12, "RefreshTokenValidity": 30, "TokenValidityUnits": {"AccessToken": "hours", "IdToken": "hours", "RefreshToken": "days"}}},
  "AdminGroup": {"Type": "AWS::Cognito::UserPoolGroup", "Properties": {"GroupName": "admin", "UserPoolId": {"Ref": "UserPool"}, "Description": "Full access"}},
  "MemberGroup": {"Type": "AWS::Cognito::UserPoolGroup", "Properties": {"GroupName": "member", "UserPoolId": {"Ref": "UserPool"}, "Description": "Can upload photos and videos"}},
- "EventsTable": table("events"), "SponsorsTable": table("sponsors"), "MediaTable": table("media"),
+ "EventsTable": table("events"), "SponsorsTable": table("sponsors"), "MediaTable": table("media"), "MessagesTable": table("messages"),
  "MediaBucket": {"Type": "AWS::S3::Bucket", "Properties": {"BucketName": {"Fn::Sub": "${AWS::StackName}-media-${AWS::AccountId}"},
    "PublicAccessBlockConfiguration": {"BlockPublicAcls": True, "BlockPublicPolicy": True, "IgnorePublicAcls": True, "RestrictPublicBuckets": True},
    "BucketEncryption": {"ServerSideEncryptionConfiguration": [{"ServerSideEncryptionByDefault": {"SSEAlgorithm": "AES256"}}]},
@@ -35,7 +35,8 @@ R = {
    "ManagedPolicyArns": ["arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"],
    "Policies": [{"PolicyName": "app", "PolicyDocument": {"Version": "2012-10-17", "Statement": [
      {"Effect": "Allow", "Action": ["dynamodb:GetItem", "dynamodb:PutItem", "dynamodb:UpdateItem", "dynamodb:DeleteItem", "dynamodb:Scan", "dynamodb:Query"],
-      "Resource": [{"Fn::GetAtt": ["EventsTable", "Arn"]}, {"Fn::GetAtt": ["SponsorsTable", "Arn"]}, {"Fn::GetAtt": ["MediaTable", "Arn"]}]},
+      "Resource": [{"Fn::GetAtt": ["EventsTable", "Arn"]}, {"Fn::GetAtt": ["SponsorsTable", "Arn"]}, {"Fn::GetAtt": ["MediaTable", "Arn"]}, {"Fn::GetAtt": ["MessagesTable", "Arn"]}]},
+     {"Effect": "Allow", "Action": ["translate:TranslateText"], "Resource": "*"},
      {"Effect": "Allow", "Action": ["s3:PutObject", "s3:GetObject", "s3:DeleteObject"], "Resource": {"Fn::Sub": "${MediaBucket.Arn}/*"}},
      {"Effect": "Allow", "Action": ["ses:SendEmail", "ses:SendRawEmail"], "Resource": "*"},
      {"Effect": "Allow", "Action": ["sns:Publish"], "NotResource": "arn:aws:sns:*:*:*"},
@@ -44,7 +45,7 @@ R = {
  "Fn": {"Type": "AWS::Lambda::Function", "Properties": {"FunctionName": {"Fn::Sub": "${AWS::StackName}-api"}, "Runtime": "python3.12", "Handler": "app.handler",
    "Role": {"Fn::GetAtt": ["FnRole", "Arn"]}, "Timeout": 20, "MemorySize": 256,
    "Code": {"S3Bucket": {"Ref": "CodeBucket"}, "S3Key": {"Ref": "CodeKey"}},
-   "Environment": {"Variables": {"EVENTS_TABLE": {"Ref": "EventsTable"}, "SPONSORS_TABLE": {"Ref": "SponsorsTable"}, "MEDIA_TABLE": {"Ref": "MediaTable"},
+   "Environment": {"Variables": {"EVENTS_TABLE": {"Ref": "EventsTable"}, "SPONSORS_TABLE": {"Ref": "SponsorsTable"}, "MEDIA_TABLE": {"Ref": "MediaTable"}, "MESSAGES_TABLE": {"Ref": "MessagesTable"},
      "MEDIA_BUCKET": {"Ref": "MediaBucket"}, "USER_POOL_ID": {"Ref": "UserPool"}, "SENDER_EMAIL": {"Ref": "SenderEmail"}, "ADMIN_EMAIL": {"Ref": "AdminEmail"}, "SITE_URL": {"Ref": "SiteUrl"}}}}},
  "Api": {"Type": "AWS::ApiGatewayV2::Api", "Properties": {"Name": {"Fn::Sub": "${AWS::StackName}-api"}, "ProtocolType": "HTTP",
    "CorsConfiguration": {"AllowOrigins": ORIGINS, "AllowMethods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"], "AllowHeaders": ["authorization", "content-type"], "MaxAge": 3600}}},
@@ -62,7 +63,7 @@ def route(name, method, path, auth):
         p["AuthorizationType"] = "JWT"; p["AuthorizerId"] = {"Ref": "Authorizer"}
     R[name] = {"Type": "AWS::ApiGatewayV2::Route", "Properties": p}
 # Route logical names are positional; never reorder PUBLIC/AUTH. Add new routes to EXTRA only.
-EXTRA = [("GET", "/youtube", False)]
+EXTRA = [("GET", "/youtube", False), ("GET", "/messages", False), ("POST", "/messages", True), ("DELETE", "/messages/{id}", True)]
 i = 0
 for m, p in PUBLIC: i += 1; route(f"RoutePub{i}", m, p, False)
 for m, p in AUTH: i += 1; route(f"RouteAuth{i}", m, p, True)

@@ -8,6 +8,7 @@ ddb = boto3.resource("dynamodb")
 EVENTS = ddb.Table(os.environ["EVENTS_TABLE"])
 SPONSORS = ddb.Table(os.environ["SPONSORS_TABLE"])
 MEDIA = ddb.Table(os.environ["MEDIA_TABLE"])
+MESSAGES = ddb.Table(os.environ["MESSAGES_TABLE"])
 MEDIA_BUCKET = os.environ["MEDIA_BUCKET"]
 USER_POOL = os.environ["USER_POOL_ID"]
 SENDER = os.environ["SENDER_EMAIL"]
@@ -19,6 +20,7 @@ s3 = boto3.client("s3", region_name=REGION, config=boto3.session.Config(signatur
 ses = boto3.client("sesv2", region_name=REGION)
 sns = boto3.client("sns", region_name=REGION)
 cognito = boto3.client("cognito-idp", region_name=REGION)
+translate = boto3.client("translate", region_name=REGION)
 
 
 def resp(status, body=None):
@@ -292,6 +294,59 @@ def delete_user(event, username):
     return resp(200, {"deleted": username})
 
 
+# ---------- swamy messages ----------
+def is_telugu(text):
+    letters = [c for c in text if c.isalpha()]
+    if not letters:
+        return False
+    te = sum(1 for c in letters if "\u0C00" <= c <= "\u0C7F")
+    return te / len(letters) > 0.5
+
+
+def tr(text, src, dst):
+    text = (text or "").strip()
+    if not text:
+        return ""
+    out = []
+    for chunk in [text[i:i + 4500] for i in range(0, len(text), 4500)]:   # Translate limit is 10k bytes per call
+        try:
+            out.append(translate.translate_text(Text=chunk, SourceLanguageCode=src, TargetLanguageCode=dst)["TranslatedText"])
+        except Exception as e:
+            print("TRANSLATE FAILED", repr(e))
+            return ""
+    return "".join(out)
+
+
+def list_messages():
+    items = MESSAGES.scan().get("Items", [])
+    items.sort(key=lambda x: x.get("created", ""), reverse=True)
+    return resp(200, items)
+
+
+def create_message(event):
+    if not is_admin(event):
+        return resp(403, {"error": "admin only"})
+    b = body(event)
+    title = (b.get("title") or "").strip()[:200]
+    text = (b.get("body") or "").strip()[:8000]
+    if not title or not text:
+        return resp(400, {"error": "title and message required"})
+    src = "te" if is_telugu(text + " " + title) else "en"
+    dst = "en" if src == "te" else "te"
+    item = {"id": uuid.uuid4().hex[:12], "created": now(), "by": claims(event).get("email", ""), "source_lang": src,
+            f"title_{src}": title, f"body_{src}": text,
+            f"title_{dst}": tr(title, src, dst), f"body_{dst}": tr(text, src, dst)}
+    MESSAGES.put_item(Item=item)
+    return resp(200, item)
+
+
+def delete_message(event, mid):
+    if not is_admin(event):
+        return resp(403, {"error": "admin only"})
+    MESSAGES.delete_item(Key={"id": mid})
+    return resp(200, {"deleted": mid})
+
+
 # ---------- youtube ----------
 YT_CHANNEL = "UCrNrbCerWLBjv_raGBn9oxQ"
 _yt_cache = {"t": 0, "items": []}
@@ -336,6 +391,9 @@ def handler(event, context):
         if rk == "DELETE /events/{id}": return delete_event(event, p["id"])
         if rk == "GET /media": return list_media()
         if rk == "GET /youtube": return youtube_videos()
+        if rk == "GET /messages": return list_messages()
+        if rk == "POST /messages": return create_message(event)
+        if rk == "DELETE /messages/{id}": return delete_message(event, p["id"])
         if rk == "POST /media/upload-url": return upload_url(event)
         if rk == "POST /media": return register_media(event)
         if rk == "DELETE /media/{id}": return delete_media(event, p["id"])

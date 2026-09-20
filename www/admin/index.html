@@ -19,7 +19,7 @@
   <div class="container">
     <!-- Login -->
     <div id="login" class="login-box" hidden>
-      <h1 style="font-size:1.5rem;margin-top:0">Admin sign in</h1>
+      <div style="display:flex;justify-content:space-between;align-items:center"><h1 style="font-size:1.5rem;margin:0"><span class="en">Admin sign in</span><span class="te">అడ్మిన్ లాగిన్</span></h1><button class="lang-toggle small" type="button" id="langBtn2" style="color:var(--maroon);border-color:var(--maroon)"></button></div>
       <form id="loginForm" class="contact">
         <div><label for="lEmail">Email</label><input id="lEmail" type="email" required autocomplete="username"></div>
         <div><label for="lPw">Password</label><input id="lPw" type="password" required autocomplete="current-password"></div>
@@ -34,17 +34,18 @@
     <div id="dash" hidden>
       <div class="admin-bar">
         <div><strong id="who"></strong> <span class="pill" id="role"></span></div>
-        <div><a class="btn outline small" href="/">View site</a> <button class="btn small danger" id="logout">Log out</button></div>
+        <div><button class="lang-toggle small" type="button" id="langBtn" style="color:var(--maroon);border-color:var(--maroon)"></button> <a class="btn outline small" href="/"><span class="en">View site</span><span class="te">సైట్ చూడండి</span></a> <button class="btn small danger" id="logout"><span class="en">Log out</span><span class="te">లాగ్ అవుట్</span></button></div>
       </div>
       <div class="tabs" id="tabs">
-        <button data-t="events" class="adminOnly">Events</button>
-        <button data-t="sponsors" class="adminOnly">Annadanam sponsors</button>
-        <button data-t="media">Photos &amp; videos</button>
-        <button data-t="users" class="adminOnly">Users</button>
+        <button data-t="events" class="adminOnly"><span class="en">Events</span><span class="te">కార్యక్రమాలు</span></button>
+        <button data-t="sponsors" class="adminOnly"><span class="en">Annadanam sponsors</span><span class="te">అన్నదాన స్పాన్సర్లు</span></button>
+        <button data-t="media"><span class="en">Photos &amp; videos</span><span class="te">ఫోటోలు &amp; వీడియోలు</span></button>
+        <button data-t="messages" class="adminOnly"><span class="en">Swamy's Messages</span><span class="te">స్వామి సందేశాలు</span></button>
+        <button data-t="users" class="adminOnly"><span class="en">Users</span><span class="te">వినియోగదారులు</span></button>
       </div>
 
       <div class="panel" id="p-events">
-        <h2 style="margin-top:0">Add / edit event</h2>
+        <h2 style="margin-top:0"><span class="en">Add / edit event</span><span class="te">కార్యక్రమం జోడించండి / సవరించండి</span></h2>
         <form id="evForm" class="contact" style="max-width:none">
           <input type="hidden" id="evId">
           <div class="row">
@@ -67,27 +68,40 @@
       </div>
 
       <div class="panel" id="p-sponsors">
-        <h2 style="margin-top:0">Annadanam sponsor requests</h2>
+        <h2 style="margin-top:0"><span class="en">Annadanam sponsor requests</span><span class="te">అన్నదాన స్పాన్సర్ అభ్యర్థనలు</span></h2>
         <p class="muted">New requests arrive as <span class="pill pending">pending</span>. Call the devotee, then mark confirmed or declined. Confirmed and pending both show as "sponsored" on the public schedule.</p>
         <div class="table-wrap"><table id="spTable"><tr><th>Saturday</th><th>Name</th><th>Phone</th><th>Email</th><th>Note</th><th>Notified</th><th>Status</th><th></th></tr></table></div>
       </div>
 
       <div class="panel" id="p-media">
-        <h2 style="margin-top:0">Add photos &amp; videos</h2>
+        <h2 style="margin-top:0"><span class="en">Add photos &amp; videos</span><span class="te">ఫోటోలు &amp; వీడియోలు జోడించండి</span></h2>
         <p class="muted">On a phone, the first two buttons open the camera. Each capture shows below for review; press <b>Approve</b> to publish it to the gallery.</p>
         <div class="btn-row" style="justify-content:flex-start;margin-bottom:1rem">
-          <label class="btn" style="cursor:pointer">📷 Take photo<input type="file" accept="image/*" capture="environment" id="capPhoto" hidden></label>
-          <label class="btn" style="cursor:pointer">🎥 Record video<input type="file" accept="video/*" capture="environment" id="capVideo" hidden></label>
-          <label class="btn outline" style="cursor:pointer">📁 Choose files<input type="file" accept="image/*,video/mp4,video/quicktime,video/webm" multiple id="capFiles" hidden></label>
+          <label class="btn" style="cursor:pointer">📷 <span class="en">Take photo</span><span class="te">ఫోటో తీయండి</span><input type="file" accept="image/*" capture="environment" id="capPhoto" hidden></label>
+          <label class="btn" style="cursor:pointer">🎥 <span class="en">Record video</span><span class="te">వీడియో రికార్డ్</span><input type="file" accept="video/*" capture="environment" id="capVideo" hidden></label>
+          <label class="btn outline" style="cursor:pointer">📁 <span class="en">Choose files</span><span class="te">ఫైళ్లు ఎంచుకోండి</span><input type="file" accept="image/*,video/mp4,video/quicktime,video/webm" multiple id="capFiles" hidden></label>
         </div>
         <div id="pending" class="gallery"></div>
         <div id="upMsg"></div>
-        <h2>Gallery items</h2>
+        <h2><span class="en">Gallery items</span><span class="te">గ్యాలరీ అంశాలు</span></h2>
         <div class="gallery" id="mediaList"></div>
       </div>
 
+      <div class="panel" id="p-messages">
+        <h2 style="margin-top:0"><span class="en">Post a message from Swamy's temple</span><span class="te">ఆలయం నుండి సందేశం పోస్ట్ చేయండి</span></h2>
+        <p class="muted"><span class="en">Write in Telugu or English. The other language is produced automatically so every visitor can read it in the language the site is set to.</span><span class="te">తెలుగు లేదా ఇంగ్లీషులో రాయండి. మరో భాష స్వయంచాలకంగా తయారవుతుంది; సందర్శకులు సైట్ భాషలో చదవగలరు.</span></p>
+        <form id="msgForm" class="contact" style="max-width:720px">
+          <div><label for="msgTitle"><span class="en">Title</span><span class="te">శీర్షిక</span></label><input id="msgTitle" required maxlength="200"></div>
+          <div><label for="msgBody"><span class="en">Message</span><span class="te">సందేశం</span></label><textarea id="msgBody" required maxlength="8000" style="min-height:180px"></textarea></div>
+          <div><button class="btn" type="submit" id="msgBtn"><span class="en">Post</span><span class="te">పోస్ట్ చేయండి</span></button></div>
+          <div id="msgMsg"></div>
+        </form>
+        <h2><span class="en">Posted messages</span><span class="te">పోస్ట్ చేసిన సందేశాలు</span></h2>
+        <div class="msg-grid" id="msgList"></div>
+      </div>
+
       <div class="panel" id="p-users">
-        <h2 style="margin-top:0">Add a user</h2>
+        <h2 style="margin-top:0"><span class="en">Add a user</span><span class="te">వినియోగదారుని జోడించండి</span></h2>
         <p class="muted">The person receives an email with a temporary password. <b>Members</b> can upload photos and videos. <b>Admins</b> can do everything, including adding users.</p>
         <form id="uForm" class="contact">
           <div class="row">
@@ -108,6 +122,9 @@
   var C = VS.config, ACI = window.AmazonCognitoIdentity;
   var pool = new ACI.CognitoUserPool({ UserPoolId: C.userPoolId, ClientId: C.clientId });
   var $ = function(id){ return document.getElementById(id); };
+  function setLang(l){ try { localStorage.setItem('lang', l); } catch(e){} document.documentElement.setAttribute('data-lang', l); document.documentElement.lang = l; ['langBtn','langBtn2'].forEach(function(id){ var b=$(id); if (b) b.textContent = l==='en' ? 'తెలుగు' : 'English'; }); }
+  setLang(document.documentElement.getAttribute('data-lang') || 'en');
+  ['langBtn','langBtn2'].forEach(function(id){ $(id).onclick = function(){ setLang(document.documentElement.getAttribute('data-lang')==='en' ? 'te' : 'en'); }; });
   function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
   function msg(id, text, ok){ $(id).innerHTML = text ? '<div class="alert '+(ok?'ok':'err')+'">'+esc(text)+'</div>' : ''; }
 
@@ -139,7 +156,7 @@
   function tab(t){
     Array.prototype.forEach.call($('tabs').children, function(b){ b.classList.toggle('active', b.getAttribute('data-t')===t); });
     Array.prototype.forEach.call(document.querySelectorAll('.panel'), function(p){ p.classList.toggle('active', p.id==='p-'+t); });
-    ({events: loadEvents, sponsors: loadSponsors, media: loadMedia, users: loadUsers})[t]();
+    ({events: loadEvents, sponsors: loadSponsors, media: loadMedia, messages: loadMessages, users: loadUsers})[t]();
   }
   $('tabs').onclick = function(e){ var t = e.target.getAttribute('data-t'); if (t) tab(t); };
   function fail(id){ return function(err){ msg(id, err.message || String(err)); if (/401|403/.test(err.message)) { VS.clearToken(); show(); } }; }
@@ -247,6 +264,25 @@
     }).then(function(){ fig.remove(); msg('upMsg','Published to the gallery.',true); loadMedia(); })
       .catch(function(err){ st.textContent = 'Failed: ' + (err.message || err); Array.prototype.forEach.call(btns, function(b){ b.disabled = false; }); prog.hidden = true; });
   };
+
+  // ---- messages ----
+  function loadMessages(){
+    VS.api('GET','/messages').then(function(list){
+      $('msgList').innerHTML = list.map(function(m){
+        return '<div class="msg"><h3>'+esc(m.title_en||m.title_te)+'</h3><div class="when">'+esc((m.created||'').slice(0,10))+' · '+esc(m.by||'')+' · '+(m.source_lang==='te'?'తెలుగు':'English')+'</div>' +
+          '<div class="body" style="max-height:8em;overflow:auto">'+esc(m.body_en||m.body_te)+'</div>' +
+          (m.title_te ? '<div class="body" lang="te" style="max-height:8em;overflow:auto;margin-top:.6rem;color:var(--ink-soft)">'+esc(m.title_te)+' — '+esc(m.body_te)+'</div>' : '') +
+          '<div style="margin-top:.8rem"><button class="btn small danger" data-del="'+m.id+'">'+'<span class="en">Delete</span><span class="te">తొలగించు</span>'+'</button></div></div>';
+      }).join('') || '<p class="muted"><span class="en">No messages yet.</span><span class="te">ఇంకా సందేశాలు లేవు.</span></p>';
+    }).catch(fail('msgMsg'));
+  }
+  $('msgForm').onsubmit = function(e){
+    e.preventDefault(); $('msgBtn').disabled = true; msg('msgMsg','');
+    VS.api('POST','/messages',{ title: $('msgTitle').value, body: $('msgBody').value })
+      .then(function(){ msg('msgMsg','Posted. It is now on the Messages page in both languages.', true); $('msgForm').reset(); loadMessages(); })
+      .catch(fail('msgMsg')).then(function(){ $('msgBtn').disabled = false; });
+  };
+  $('msgList').onclick = function(e){ var id = e.target.closest('button') && e.target.closest('button').getAttribute('data-del'); if (id && confirm('Delete this message?')) VS.api('DELETE','/messages/'+id).then(loadMessages).catch(fail('msgMsg')); };
 
   // ---- users ----
   function loadUsers(){

@@ -177,6 +177,30 @@
     }
    }
   },
+  "MessagesTable": {
+   "Type": "AWS::DynamoDB::Table",
+   "Properties": {
+    "TableName": {
+     "Fn::Sub": "${AWS::StackName}-messages"
+    },
+    "BillingMode": "PAY_PER_REQUEST",
+    "AttributeDefinitions": [
+     {
+      "AttributeName": "id",
+      "AttributeType": "S"
+     }
+    ],
+    "KeySchema": [
+     {
+      "AttributeName": "id",
+      "KeyType": "HASH"
+     }
+    ],
+    "PointInTimeRecoverySpecification": {
+     "PointInTimeRecoveryEnabled": true
+    }
+   }
+  },
   "MediaBucket": {
    "Type": "AWS::S3::Bucket",
    "Properties": {
@@ -306,8 +330,21 @@
             "MediaTable",
             "Arn"
            ]
+          },
+          {
+           "Fn::GetAtt": [
+            "MessagesTable",
+            "Arn"
+           ]
           }
          ]
+        },
+        {
+         "Effect": "Allow",
+         "Action": [
+          "translate:TranslateText"
+         ],
+         "Resource": "*"
         },
         {
          "Effect": "Allow",
@@ -391,6 +428,9 @@
       },
       "MEDIA_TABLE": {
        "Ref": "MediaTable"
+      },
+      "MESSAGES_TABLE": {
+       "Ref": "MessagesTable"
       },
       "MEDIA_BUCKET": {
        "Ref": "MediaBucket"
@@ -737,6 +777,50 @@
     "RouteKey": "GET /youtube",
     "Target": {
      "Fn::Sub": "integrations/${Integration}"
+    }
+   }
+  },
+  "RouteExtra2": {
+   "Type": "AWS::ApiGatewayV2::Route",
+   "Properties": {
+    "ApiId": {
+     "Ref": "Api"
+    },
+    "RouteKey": "GET /messages",
+    "Target": {
+     "Fn::Sub": "integrations/${Integration}"
+    }
+   }
+  },
+  "RouteExtra3": {
+   "Type": "AWS::ApiGatewayV2::Route",
+   "Properties": {
+    "ApiId": {
+     "Ref": "Api"
+    },
+    "RouteKey": "POST /messages",
+    "Target": {
+     "Fn::Sub": "integrations/${Integration}"
+    },
+    "AuthorizationType": "JWT",
+    "AuthorizerId": {
+     "Ref": "Authorizer"
+    }
+   }
+  },
+  "RouteExtra4": {
+   "Type": "AWS::ApiGatewayV2::Route",
+   "Properties": {
+    "ApiId": {
+     "Ref": "Api"
+    },
+    "RouteKey": "DELETE /messages/{id}",
+    "Target": {
+     "Fn::Sub": "integrations/${Integration}"
+    },
+    "AuthorizationType": "JWT",
+    "AuthorizerId": {
+     "Ref": "Authorizer"
     }
    }
   }

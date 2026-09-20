@@ -7,6 +7,7 @@
     { href: 'temple.html',    en: 'Temple',           te: 'ఆలయం' },
     { href: 'events.html',    en: 'Events',           te: 'కార్యక్రమాలు' },
     { href: 'annadanam.html', en: 'Annadanam',        te: 'అన్నదానం' },
+    { href: 'messages.html',  en: "Swamy's Messages", te: 'స్వామి సందేశాలు' },
     { href: 'gallery.html',   en: 'Gallery',          te: 'గ్యాలరీ' },
     { href: 'donate.html',    en: 'Contact',          te: 'సంప్రదింపు' }
   ];
@@ -184,6 +185,33 @@
       open(all.indexOf(img));
     });
   })();
+
+  // Generic finger-tracking carousel: container holds .sw-track > .sw-slide*, plus optional .sw-dots/.sw-count
+  window.VS = window.VS || {};
+  VS.swipeCarousel = function (el, opts) {
+    opts = opts || {};
+    var EASE = 'cubic-bezier(0.22, 0.61, 0.36, 1)', DUR = 420, idx = 0, W = 0, dx = 0, sx = 0, sy = 0, t0 = 0, dragging = false, horiz = null, animating = false;
+    var track = el.querySelector('.sw-track'), slides = Array.prototype.slice.call(track.children), n = slides.length;
+    var dots = el.querySelector('.sw-dots'), count = el.querySelector('.sw-count');
+    if (dots) dots.innerHTML = slides.map(function (_, i) { return '<i' + (i === 0 ? ' class="on"' : '') + '></i>'; }).join('');
+    function measure() { W = el.clientWidth; slides.forEach(function (s) { s.style.width = W + 'px'; }); }
+    function setX(x, animate) { track.style.transition = animate ? 'transform ' + DUR + 'ms ' + EASE : 'none'; track.style.transform = 'translate3d(' + (-idx * W + x) + 'px,0,0)'; }
+    function update() { if (dots) Array.prototype.forEach.call(dots.children, function (d, i) { d.classList.toggle('on', i === idx); }); if (count) count.textContent = (idx + 1) + ' / ' + n; if (opts.onChange) opts.onChange(idx); }
+    function go(dir) { if (animating) return; var t = Math.max(0, Math.min(n - 1, idx + dir)); if (t === idx) { setX(0, true); return; } animating = true; idx = t; setX(0, true); update(); setTimeout(function () { animating = false; }, DUR); }
+    measure(); setX(0, false); update(); window.addEventListener('resize', function () { measure(); setX(0, false); });
+    track.addEventListener('touchstart', function (e) { if (animating || e.touches.length !== 1) return; sx = e.touches[0].clientX; sy = e.touches[0].clientY; dx = 0; t0 = Date.now(); dragging = true; horiz = null; setX(0, false); }, { passive: true });
+    track.addEventListener('touchmove', function (e) {
+      if (!dragging) return; var mx = e.touches[0].clientX - sx, my = e.touches[0].clientY - sy;
+      if (horiz === null && (Math.abs(mx) > 6 || Math.abs(my) > 6)) horiz = Math.abs(mx) > Math.abs(my);
+      if (!horiz) return; e.preventDefault();
+      dx = ((idx === 0 && mx > 0) || (idx === n - 1 && mx < 0)) ? mx * 0.3 : mx; setX(dx, false);
+    }, { passive: false });
+    track.addEventListener('touchend', function () { if (!dragging) return; dragging = false; var dt = Math.max(1, Date.now() - t0), v = Math.abs(dx) / dt; if (horiz && (Math.abs(dx) > W * 0.22 || v > 0.45)) go(dx < 0 ? 1 : -1); else setX(0, true); });
+    track.addEventListener('touchcancel', function () { dragging = false; setX(0, true); });
+    var prev = el.querySelector('.sw-prev'), next = el.querySelector('.sw-next');
+    if (prev) prev.onclick = function () { go(-1); }; if (next) next.onclick = function () { go(1); };
+    return { go: go, index: function () { return idx; } };
+  };
 
   if ('serviceWorker' in navigator && location.protocol !== 'file:') {
     window.addEventListener('load', function () {
