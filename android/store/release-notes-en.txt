@@ -1,1 +1,1 @@
-Gallery improvements.
+Expand videos to a large viewer and swipe between them.
