@@ -106,32 +106,74 @@
     });
   });
 
-  // Lightbox: click a gallery photo to enlarge it in place (Esc or tap outside to close; arrows to move)
+  // Lightbox: tap a gallery photo to enlarge; swipe (or arrows/keys) to move between photos with a smooth slide
   (function () {
-    var items = [], idx = 0, box = null;
+    var items = [], idx = 0, box = null, track = null, slides = [], W = 0, animating = false;
+    var EASE = 'cubic-bezier(0.22, 0.61, 0.36, 1)', DUR = 420;
     function collect() {
       items = Array.prototype.map.call(document.querySelectorAll('.gallery figure img'), function (img) {
         var cap = img.closest('figure').querySelector('figcaption');
-        var full = img.closest('a') && /\.(jpe?g|png|webp)$/i.test(img.closest('a').getAttribute('href') || '') ? img.closest('a').getAttribute('href') : img.getAttribute('src');
-        return { src: full, cap: cap ? cap.innerHTML : '' };
+        var a = img.closest('a'), href = a && a.getAttribute('href') || '';
+        return { src: /\.(jpe?g|png|webp)(\?.*)?$/i.test(href) ? href : img.getAttribute('src'), cap: cap ? cap.innerHTML : '' };
       });
     }
-    function show(i) {
-      idx = (i + items.length) % items.length;
-      box.querySelector('img').src = items[idx].src;
-      box.querySelector('.cap').innerHTML = items[idx].cap;
-      box.querySelector('.prev').hidden = box.querySelector('.next').hidden = items.length < 2;
+    function at(i) { return items[(i + items.length) % items.length]; }
+    function fill() {
+      // three slides: previous, current, next
+      [ -1, 0, 1 ].forEach(function (d, k) { var it = at(idx + d); slides[k].src = it.src; slides[k].alt = ''; });
+      box.querySelector('.cap').innerHTML = at(idx).cap;
+      box.querySelector('.count').textContent = items.length > 1 ? (((idx % items.length) + items.length) % items.length + 1) + ' / ' + items.length : '';
+      setX(0, false);
     }
+    function setX(x, animate) {
+      track.style.transition = animate ? 'transform ' + DUR + 'ms ' + EASE : 'none';
+      track.style.transform = 'translate3d(' + (x - W) + 'px,0,0)';
+    }
+    function go(dir) {
+      if (animating || items.length < 2) { if (items.length < 2) setX(0, true); return; }
+      animating = true; setX(-dir * W, true);
+      setTimeout(function () { idx += dir; fill(); animating = false; }, DUR);
+    }
+    function settle() { setX(0, true); }
     function open(i) {
       if (!box) {
         box = document.createElement('div'); box.id = 'lightbox';
-        box.innerHTML = '<button class="close" aria-label="Close">&times;</button><button class="prev" aria-label="Previous">&#8249;</button><img alt=""><div class="cap"></div><button class="next" aria-label="Next">&#8250;</button>';
-        box.addEventListener('click', function (e) { if (e.target === box || e.target.classList.contains('close')) close(); });
-        box.querySelector('.prev').onclick = function (e) { e.stopPropagation(); show(idx - 1); };
-        box.querySelector('.next').onclick = function (e) { e.stopPropagation(); show(idx + 1); };
-        document.addEventListener('keydown', function (e) { if (!box || !box.parentNode) return; if (e.key === 'Escape') close(); if (e.key === 'ArrowLeft') show(idx - 1); if (e.key === 'ArrowRight') show(idx + 1); });
+        box.innerHTML = '<button class="close" aria-label="Close">&times;</button><button class="prev" aria-label="Previous">&#8249;</button>' +
+          '<div class="lb-stage"><div class="lb-track"><img><img><img></div></div><div class="cap"></div><div class="count"></div>' +
+          '<button class="next" aria-label="Next">&#8250;</button>';
+        track = box.querySelector('.lb-track'); slides = Array.prototype.slice.call(track.children);
+        box.addEventListener('click', function (e) { if (e.target === box || e.target.classList.contains('close') || e.target.classList.contains('lb-stage')) close(); });
+        box.querySelector('.prev').onclick = function (e) { e.stopPropagation(); go(-1); };
+        box.querySelector('.next').onclick = function (e) { e.stopPropagation(); go(1); };
+        document.addEventListener('keydown', function (e) { if (!box || !box.parentNode) return; if (e.key === 'Escape') close(); if (e.key === 'ArrowLeft') go(-1); if (e.key === 'ArrowRight') go(1); });
+        window.addEventListener('resize', function () { if (box && box.parentNode) { W = box.querySelector('.lb-stage').clientWidth; setX(0, false); } });
+        // touch: follow the finger, then ease into place
+        var sx = 0, sy = 0, dx = 0, t0 = 0, dragging = false, horiz = null;
+        var stage = box.querySelector('.lb-stage');
+        stage.addEventListener('touchstart', function (e) {
+          if (animating || e.touches.length !== 1) return;
+          sx = e.touches[0].clientX; sy = e.touches[0].clientY; dx = 0; t0 = Date.now(); dragging = true; horiz = null; setX(0, false);
+        }, { passive: true });
+        stage.addEventListener('touchmove', function (e) {
+          if (!dragging) return;
+          var mx = e.touches[0].clientX - sx, my = e.touches[0].clientY - sy;
+          if (horiz === null && (Math.abs(mx) > 6 || Math.abs(my) > 6)) horiz = Math.abs(mx) > Math.abs(my);
+          if (!horiz) return;
+          e.preventDefault();
+          dx = mx;
+          if (items.length < 2) dx = mx * 0.3;                      // rubber-band when there is nothing to slide to
+          setX(dx, false);
+        }, { passive: false });
+        stage.addEventListener('touchend', function () {
+          if (!dragging) return; dragging = false;
+          var dt = Math.max(1, Date.now() - t0), v = Math.abs(dx) / dt;   // px per ms
+          if (horiz && items.length > 1 && (Math.abs(dx) > W * 0.22 || v > 0.45)) go(dx < 0 ? 1 : -1); else settle();
+          if (!horiz && Math.abs(dx) < 6 && Date.now() - t0 < 250) { /* tap on image: leave open */ }
+        });
+        stage.addEventListener('touchcancel', function () { dragging = false; settle(); });
       }
-      document.body.appendChild(box); document.body.style.overflow = 'hidden'; show(i);
+      document.body.appendChild(box); document.body.style.overflow = 'hidden';
+      W = box.querySelector('.lb-stage').clientWidth; idx = i; fill();
     }
     function close() { if (box && box.parentNode) box.parentNode.removeChild(box); document.body.style.overflow = ''; }
     document.addEventListener('click', function (e) {
