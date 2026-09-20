@@ -6,6 +6,10 @@ cd "$(dirname "$0")"
 BUCKET=venkayaswamy-site-030011113848
 DIST=E1H9ES2VPQGWUO
 
+# restamp asset links so browsers fetch fresh CSS/JS after every deploy
+STAMP=$(date +%s)
+sed -i '' -E "s/(\.(css|js))\?v=[0-9]+/\1?v=$STAMP/g" www/*.html www/admin/*.html
+git add www/*.html www/admin/*.html && git -c user.name="deploy" -c user.email="deploy@srivenkaiahswamy.com" commit -q -m "deploy $STAMP" || true
 git push origin main
 
 echo "Uploading www/ to S3..."
