@@ -106,6 +106,43 @@
     });
   });
 
+  // Lightbox: click a gallery photo to enlarge it in place (Esc or tap outside to close; arrows to move)
+  (function () {
+    var items = [], idx = 0, box = null;
+    function collect() {
+      items = Array.prototype.map.call(document.querySelectorAll('.gallery figure img'), function (img) {
+        var cap = img.closest('figure').querySelector('figcaption');
+        var full = img.closest('a') && /\.(jpe?g|png|webp)$/i.test(img.closest('a').getAttribute('href') || '') ? img.closest('a').getAttribute('href') : img.getAttribute('src');
+        return { src: full, cap: cap ? cap.innerHTML : '' };
+      });
+    }
+    function show(i) {
+      idx = (i + items.length) % items.length;
+      box.querySelector('img').src = items[idx].src;
+      box.querySelector('.cap').innerHTML = items[idx].cap;
+      box.querySelector('.prev').hidden = box.querySelector('.next').hidden = items.length < 2;
+    }
+    function open(i) {
+      if (!box) {
+        box = document.createElement('div'); box.id = 'lightbox';
+        box.innerHTML = '<button class="close" aria-label="Close">&times;</button><button class="prev" aria-label="Previous">&#8249;</button><img alt=""><div class="cap"></div><button class="next" aria-label="Next">&#8250;</button>';
+        box.addEventListener('click', function (e) { if (e.target === box || e.target.classList.contains('close')) close(); });
+        box.querySelector('.prev').onclick = function (e) { e.stopPropagation(); show(idx - 1); };
+        box.querySelector('.next').onclick = function (e) { e.stopPropagation(); show(idx + 1); };
+        document.addEventListener('keydown', function (e) { if (!box || !box.parentNode) return; if (e.key === 'Escape') close(); if (e.key === 'ArrowLeft') show(idx - 1); if (e.key === 'ArrowRight') show(idx + 1); });
+      }
+      document.body.appendChild(box); document.body.style.overflow = 'hidden'; show(i);
+    }
+    function close() { if (box && box.parentNode) box.parentNode.removeChild(box); document.body.style.overflow = ''; }
+    document.addEventListener('click', function (e) {
+      var img = e.target.closest && e.target.closest('.gallery figure img');
+      if (!img) return;
+      e.preventDefault(); collect();
+      var all = Array.prototype.slice.call(document.querySelectorAll('.gallery figure img'));
+      open(all.indexOf(img));
+    });
+  })();
+
   if ('serviceWorker' in navigator && location.protocol !== 'file:') {
     window.addEventListener('load', function () {
       navigator.serviceWorker.register('sw.js').catch(function () {});
