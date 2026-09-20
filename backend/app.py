@@ -312,7 +312,10 @@ def youtube_videos():
                 seen.append(vid)
         titles = {}
         for m in re.finditer(r'"videoId":"([A-Za-z0-9_-]{11})".{0,3000}?"title":\{(?:"runs":\[\{"text"|"content"):"((?:[^"\\]|\\.)*)"', page):
-            titles.setdefault(m.group(1), m.group(2).encode().decode("unicode_escape", "ignore"))
+            try:
+                titles.setdefault(m.group(1), json.loads('"' + m.group(2) + '"'))
+            except Exception:
+                titles.setdefault(m.group(1), m.group(2))
         items = [{"id": v, "title": html.unescape(titles.get(v, ""))} for v in seen[:24]]
         if items:
             _yt_cache.update(t=time.time(), items=items)
