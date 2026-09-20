@@ -1,1 +1,1 @@
-Tap photos to enlarge them. Bank account details for donations.
+Fixes the volunteer login page.
