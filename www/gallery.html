@@ -109,7 +109,16 @@
   if (VS.config.apiUrl) VS.api('GET','/youtube').then(ytGrid).catch(function(){ yt.innerHTML=''; }); else yt.innerHTML='';
   function render(list){
     var p = list.filter(function(m){return m.type==='photo';}), v = list.filter(function(m){return m.type==='video';});
-    ph.innerHTML = fallback + p.map(function(m){ var u=VS.mediaUrl(m.key); return '<figure><a href="'+u+'" target="_blank"><img src="'+u+'" alt="'+esc(m.title)+'" loading="lazy"></a>'+(m.title?'<figcaption>'+esc(m.title)+'</figcaption>':'')+'</figure>'; }).join('');
+    var tiles = fallback + p.map(function(m){ var u=VS.mediaUrl(m.key); return '<figure><a href="'+u+'" target="_blank"><img src="'+u+'" alt="'+esc(m.title)+'" loading="lazy"></a>'+(m.title?'<figcaption>'+esc(m.title)+'</figcaption>':'')+'</figure>'; }).join('');
+    var TOUCHDEV = window.matchMedia('(hover: none) and (pointer: coarse)').matches;
+    if (TOUCHDEV) { ph.innerHTML = tiles; }
+    else {
+      ph.className = 'photo-carousel';
+      var tmp = document.createElement('div'); tmp.innerHTML = tiles;
+      ph.innerHTML = '<div class="sw-wrap"><button class="sw-prev" aria-label="Previous">&#8249;</button><div class="sw"><div class="sw-track">'+Array.prototype.map.call(tmp.children, function(f){ return '<div class="sw-slide">'+f.outerHTML+'</div>'; }).join('')+'</div><div class="sw-dots"></div></div><button class="sw-next" aria-label="Next">&#8250;</button></div>';
+      var sw = ph.querySelector('.sw'); sw._prev = ph.querySelector('.sw-prev'); sw._next = ph.querySelector('.sw-next');
+      VS.swipeCarousel(sw, { perView: function(w){ return w >= 1000 ? 4 : (w >= 700 ? 3 : 2); } });
+    }
     vd.innerHTML = v.length ? v.map(function(m){ return '<div><div class="video"><video src="'+VS.mediaUrl(m.key)+'" controls preload="metadata" style="position:absolute;inset:0;width:100%;height:100%"></video></div>'+(m.title?'<p class="muted" style="margin:.3rem 0 0">'+esc(m.title)+'</p>':'')+'</div>'; }).join('') :
       '<p class="muted"><span class="en">No videos uploaded yet. See our YouTube channel above.</span><span class="te">ఇంకా వీడియోలు అప్‌లోడ్ కాలేదు. పైన మా యూట్యూబ్ ఛానల్ చూడండి.</span></p>';
   }

@@ -112,7 +112,7 @@
     var items = [], idx = 0, box = null, track = null, slides = [], W = 0, animating = false;
     var EASE = 'cubic-bezier(0.22, 0.61, 0.36, 1)', DUR = 420;
     function collect() {
-      items = Array.prototype.map.call(document.querySelectorAll('.gallery figure img'), function (img) {
+      items = Array.prototype.map.call(document.querySelectorAll('.gallery figure img, .photo-carousel figure img'), function (img) {
         var cap = img.closest('figure').querySelector('figcaption');
         var a = img.closest('a'), href = a && a.getAttribute('href') || '';
         return { src: /\.(jpe?g|png|webp)(\?.*)?$/i.test(href) ? href : img.getAttribute('src'), cap: cap ? cap.innerHTML : '' };
@@ -178,38 +178,57 @@
     }
     function close() { if (box && box.parentNode) box.parentNode.removeChild(box); document.body.style.overflow = ''; }
     document.addEventListener('click', function (e) {
-      var img = e.target.closest && e.target.closest('.gallery figure img');
+      var img = e.target.closest && e.target.closest('.gallery figure img, .photo-carousel figure img');
       if (!img) return;
       e.preventDefault(); collect();
-      var all = Array.prototype.slice.call(document.querySelectorAll('.gallery figure img'));
+      var all = Array.prototype.slice.call(document.querySelectorAll('.gallery figure img, .photo-carousel figure img'));
       open(all.indexOf(img));
     });
   })();
 
-  // Generic finger-tracking carousel: container holds .sw-track > .sw-slide*, plus optional .sw-dots/.sw-count
+  // Generic carousel: container holds .sw-track > .sw-slide*, optional .sw-dots/.sw-count/.sw-prev/.sw-next.
+  // opts.perView: tiles visible at once (number or function of width). Touch swipe, mouse drag, arrows and keys all use the same eased slide.
   window.VS = window.VS || {};
   VS.swipeCarousel = function (el, opts) {
     opts = opts || {};
-    var EASE = 'cubic-bezier(0.22, 0.61, 0.36, 1)', DUR = 420, idx = 0, W = 0, dx = 0, sx = 0, sy = 0, t0 = 0, dragging = false, horiz = null, animating = false;
+    var EASE = 'cubic-bezier(0.22, 0.61, 0.36, 1)', DUR = 480, idx = 0, W = 0, SW = 0, per = 1, dx = 0, sx = 0, sy = 0, t0 = 0, dragging = false, horiz = null, animating = false;
     var track = el.querySelector('.sw-track'), slides = Array.prototype.slice.call(track.children), n = slides.length;
-    var dots = el.querySelector('.sw-dots'), count = el.querySelector('.sw-count');
-    if (dots) dots.innerHTML = slides.map(function (_, i) { return '<i' + (i === 0 ? ' class="on"' : '') + '></i>'; }).join('');
-    function measure() { W = el.clientWidth; slides.forEach(function (s) { s.style.width = W + 'px'; }); }
-    function setX(x, animate) { track.style.transition = animate ? 'transform ' + DUR + 'ms ' + EASE : 'none'; track.style.transform = 'translate3d(' + (-idx * W + x) + 'px,0,0)'; }
-    function update() { if (dots) Array.prototype.forEach.call(dots.children, function (d, i) { d.classList.toggle('on', i === idx); }); if (count) count.textContent = (idx + 1) + ' / ' + n; if (opts.onChange) opts.onChange(idx); }
-    function go(dir) { if (animating) return; var t = Math.max(0, Math.min(n - 1, idx + dir)); if (t === idx) { setX(0, true); return; } animating = true; idx = t; setX(0, true); update(); setTimeout(function () { animating = false; }, DUR); }
-    measure(); setX(0, false); update(); window.addEventListener('resize', function () { measure(); setX(0, false); });
-    track.addEventListener('touchstart', function (e) { if (animating || e.touches.length !== 1) return; sx = e.touches[0].clientX; sy = e.touches[0].clientY; dx = 0; t0 = Date.now(); dragging = true; horiz = null; setX(0, false); }, { passive: true });
-    track.addEventListener('touchmove', function (e) {
-      if (!dragging) return; var mx = e.touches[0].clientX - sx, my = e.touches[0].clientY - sy;
+    var dots = el.querySelector('.sw-dots'), count = el.querySelector('.sw-count'), prev = el._prev || el.querySelector('.sw-prev'), next = el._next || el.querySelector('.sw-next');
+    function maxIdx() { return Math.max(0, n - per); }
+    function measure() {
+      per = typeof opts.perView === 'function' ? opts.perView(el.clientWidth) : (opts.perView || 1); per = Math.max(1, Math.min(per, n));
+      W = el.clientWidth; SW = W / per; slides.forEach(function (s) { s.style.width = SW + 'px'; }); idx = Math.min(idx, maxIdx());
+      if (dots) dots.innerHTML = Array.apply(null, Array(maxIdx() + 1)).map(function (_, i) { return '<i' + (i === idx ? ' class="on"' : '') + '></i>'; }).join('');
+    }
+    function setX(x, animate) { track.style.transition = animate ? 'transform ' + DUR + 'ms ' + EASE : 'none'; track.style.transform = 'translate3d(' + (-idx * SW + x) + 'px,0,0)'; }
+    function update() {
+      if (dots) Array.prototype.forEach.call(dots.children, function (d, i) { d.classList.toggle('on', i === idx); });
+      if (count) count.textContent = n > per ? (idx + 1) + ' / ' + (maxIdx() + 1) : '';
+      if (prev) prev.classList.toggle('off', idx <= 0); if (next) next.classList.toggle('off', idx >= maxIdx());
+      el.classList.toggle('sw-static', n <= per);
+      if (opts.onChange) opts.onChange(idx);
+    }
+    function go(dir) { if (animating) return; var t = Math.max(0, Math.min(maxIdx(), idx + dir)); if (t === idx) { setX(0, true); return; } animating = true; idx = t; setX(0, true); update(); setTimeout(function () { animating = false; }, DUR); }
+    function start(x, y) { if (animating) return; sx = x; sy = y; dx = 0; t0 = Date.now(); dragging = true; horiz = null; setX(0, false); }
+    function move(x, y, e) {
+      if (!dragging) return; var mx = x - sx, my = y - sy;
       if (horiz === null && (Math.abs(mx) > 6 || Math.abs(my) > 6)) horiz = Math.abs(mx) > Math.abs(my);
-      if (!horiz) return; e.preventDefault();
-      dx = ((idx === 0 && mx > 0) || (idx === n - 1 && mx < 0)) ? mx * 0.3 : mx; setX(dx, false);
-    }, { passive: false });
-    track.addEventListener('touchend', function () { if (!dragging) return; dragging = false; var dt = Math.max(1, Date.now() - t0), v = Math.abs(dx) / dt; if (horiz && (Math.abs(dx) > W * 0.22 || v > 0.45)) go(dx < 0 ? 1 : -1); else setX(0, true); });
-    track.addEventListener('touchcancel', function () { dragging = false; setX(0, true); });
-    var prev = el.querySelector('.sw-prev'), next = el.querySelector('.sw-next');
+      if (!horiz) return; if (e && e.cancelable) e.preventDefault();
+      dx = ((idx === 0 && mx > 0) || (idx === maxIdx() && mx < 0)) ? mx * 0.3 : mx; setX(dx, false);
+    }
+    function end() { if (!dragging) return; dragging = false; var dt = Math.max(1, Date.now() - t0), v = Math.abs(dx) / dt; if (horiz && (Math.abs(dx) > SW * 0.22 || v > 0.45)) go(dx < 0 ? 1 : -1); else setX(0, true); }
+    measure(); setX(0, false); update(); window.addEventListener('resize', function () { measure(); setX(0, false); update(); });
+    track.addEventListener('touchstart', function (e) { if (e.touches.length === 1) start(e.touches[0].clientX, e.touches[0].clientY); }, { passive: true });
+    track.addEventListener('touchmove', function (e) { move(e.touches[0].clientX, e.touches[0].clientY, e); }, { passive: false });
+    track.addEventListener('touchend', end); track.addEventListener('touchcancel', function () { dragging = false; setX(0, true); });
+    // mouse drag on desktop; a plain click (no movement) still reaches the tile
+    var moved = false;
+    track.addEventListener('mousedown', function (e) { if (e.button !== 0) return; moved = false; start(e.clientX, e.clientY); e.preventDefault(); });
+    window.addEventListener('mousemove', function (e) { if (dragging) { if (Math.abs(e.clientX - sx) > 6) moved = true; move(e.clientX, e.clientY); } });
+    window.addEventListener('mouseup', function () { end(); });
+    track.addEventListener('click', function (e) { if (moved) { e.preventDefault(); e.stopPropagation(); moved = false; } }, true);
     if (prev) prev.onclick = function () { go(-1); }; if (next) next.onclick = function () { go(1); };
+    el.tabIndex = 0; el.addEventListener('keydown', function (e) { if (e.key === 'ArrowLeft') go(-1); if (e.key === 'ArrowRight') go(1); });
     return { go: go, index: function () { return idx; } };
   };
 

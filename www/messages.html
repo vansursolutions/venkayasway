@@ -23,7 +23,7 @@
     <h1><span class="en">Swamy's Messages</span><span class="te">స్వామి సందేశాలు</span></h1>
     <p><span class="en">Messages, sayings and reflections shared by the temple. Each message is available in Telugu and English; use the language button in the header to switch.</span>
        <span class="te">ఆలయం పంచుకునే సందేశాలు, సూక్తులు, భావనలు. ప్రతి సందేశం తెలుగు, ఇంగ్లీషులో లభ్యం; మార్చడానికి హెడర్‌లోని భాషా బటన్ వాడండి.</span></p>
-    <p class="muted only-touch"><span class="en">Swipe left or right to read the next message.</span><span class="te">తదుపరి సందేశం కోసం ఎడమ/కుడి స్వైప్ చేయండి.</span></p>
+    <p class="muted"><span class="en only-touch">Swipe left or right to read the next message.</span><span class="te only-touch">తదుపరి సందేశం కోసం ఎడమ/కుడి స్వైప్ చేయండి.</span><span class="en only-mouse">Use the arrows, drag, or the ← → keys to move between messages.</span><span class="te only-mouse">సందేశాల మధ్య బాణాలు, డ్రాగ్, లేదా ← → కీలు వాడండి.</span></p>
     <div id="msgs"><p class="muted"><span class="en">Loading…</span><span class="te">లోడ్ అవుతోంది…</span></p></div>
   </div>
 </main>
@@ -42,12 +42,11 @@
   }
   function render(){
     if (!data.length) { box.innerHTML = '<p class="muted"><span class="en">No messages posted yet.</span><span class="te">ఇంకా సందేశాలు లేవు.</span></p>'; return; }
-    if (TOUCH && data.length > 1) {
-      box.innerHTML = '<div class="sw"><div class="sw-track">'+data.map(function(m){ return '<div class="sw-slide">'+card(m)+'</div>'; }).join('')+'</div><div class="sw-dots"></div><div class="sw-count"></div></div>';
-      VS.swipeCarousel(box.querySelector('.sw'));
-    } else {
-      box.innerHTML = '<div class="msg-grid">'+data.map(card).join('')+'</div>';
-    }
+    box.innerHTML = '<div class="sw-wrap"><button class="sw-prev" aria-label="Previous">&#8249;</button><div class="sw"><div class="sw-track">'+data.map(function(m){ return '<div class="sw-slide">'+card(m)+'</div>'; }).join('')+'</div><div class="sw-dots"></div><div class="sw-count"></div></div><button class="sw-next" aria-label="Next">&#8250;</button></div>';
+    var wrap = box.querySelector('.sw-wrap'), sw = wrap.querySelector('.sw');
+    // arrows live outside the overflow-hidden strip; the carousel looks for them on the container, so hand them over
+    sw._prev = wrap.querySelector('.sw-prev'); sw._next = wrap.querySelector('.sw-next');
+    VS.swipeCarousel(sw, { perView: function(w){ return TOUCH ? 1 : (w >= 980 ? 3 : (w >= 640 ? 2 : 1)); } });
   }
   VS.api('GET','/messages').then(function(list){ data = list; render(); }).catch(function(){ box.innerHTML='<p class="muted">Could not load messages.</p>'; });
   // re-render when the language button is pressed so the right version shows
