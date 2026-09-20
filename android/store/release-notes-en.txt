@@ -1,1 +1,1 @@
-Swipe through gallery photos.
+Swipe through videos in the gallery.
