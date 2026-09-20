@@ -1,1 +1,1 @@
-Expand videos to a large viewer and swipe between them.
+Video expand fix.
