@@ -58,18 +58,16 @@
   function ytEmbed(v){ return 'https://www.youtube-nocookie.com/embed/'+v.id+'?enablejsapi=1&playsinline=1&rel=0&modestbranding=1'; }
   function ytGrid(list){
     if (!list.length) { yt.innerHTML=''; return; }
-    if (TOUCH) { videoCarousel(list.slice(0,12)); return; }
-    yt.innerHTML = list.slice(0,12).map(function(v){ return '<div><div class="video"><iframe src="'+ytEmbed(v)+'" title="'+esc(v.title)+'" loading="lazy" allow="accelerometer; encrypted-media; picture-in-picture" allowfullscreen></iframe></div><p class="muted" style="margin:.3rem 0 0;font-size:.85rem">'+esc(v.title)+'</p></div>'; }).join('');
+    videoCarousel(list.slice(0,12));
   }
-  // Phone carousel: one video per screen, finger-tracking swipe with eased snap; tap on the video plays it
+  // Video carousel on every device: one per screen on phones (swipe), three per view with arrows on desktop. Tap/click a tile to play it in place.
   function videoCarousel(list){
-    var EASE='cubic-bezier(0.22, 0.61, 0.36, 1)', DUR=420, idx=0, W=0, dx=0, sx=0, sy=0, t0=0, dragging=false, horiz=null, animating=false;
-    yt.className='vcar'; yt.innerHTML='<div class="vtrack">'+list.map(function(v,i){
-      return '<div class="vslide"><div class="video"><img class="vposter" src="https://i.ytimg.com/vi/'+v.id+'/hqdefault.jpg" alt=""><button class="vplay" aria-label="Play">&#9654;</button><div class="vtap"></div></div><p class="vtitle">'+esc(v.title)+'</p></div>';
-    }).join('')+'</div><div class="vdots">'+list.map(function(_,i){ return '<i'+(i===0?' class="on"':'')+'></i>'; }).join('')+'</div><div class="vcount">1 / '+list.length+'</div>';
-    var track=yt.querySelector('.vtrack'), slides=Array.prototype.slice.call(track.children), dots=Array.prototype.slice.call(yt.querySelectorAll('.vdots i'));
-    function measure(){ W=yt.clientWidth; slides.forEach(function(sl){ sl.style.width=W+'px'; }); }
-    function setX(x, animate){ track.style.transition = animate ? 'transform '+DUR+'ms '+EASE : 'none'; track.style.transform='translate3d('+(-idx*W+x)+'px,0,0)'; }
+    yt.className='vcar';
+    yt.innerHTML = '<div class="sw-wrap"><button class="sw-prev" aria-label="Previous">&#8249;</button><div class="sw"><div class="sw-track">'+list.map(function(v){
+      return '<div class="sw-slide vslide"><div class="video"><img class="vposter" src="https://i.ytimg.com/vi/'+v.id+'/hqdefault.jpg" alt=""><button class="vplay" aria-label="Play">&#9654;</button><div class="vtap"></div></div><p class="vtitle">'+esc(v.title)+'</p></div>';
+    }).join('')+'</div><div class="sw-dots"></div><div class="sw-count"></div></div><button class="sw-next" aria-label="Next">&#8250;</button></div>';
+    var sw = yt.querySelector('.sw'), slides = Array.prototype.slice.call(sw.querySelectorAll('.vslide'));
+    sw._prev = yt.querySelector('.sw-prev'); sw._next = yt.querySelector('.sw-next');
     function post(i, func){ var f=slides[i].querySelector('iframe'); if (f && f.contentWindow) f.contentWindow.postMessage(JSON.stringify({event:'command',func:func,args:[]}),'*'); }
     function play(i){
       var box=slides[i].querySelector('.video');
@@ -79,32 +77,13 @@
       } else { post(i,'playVideo'); box.classList.add('playing'); }
     }
     function pause(i){ var box=slides[i].querySelector('.video'); if (box.querySelector('iframe')) { post(i,'pauseVideo'); box.classList.remove('playing'); } }
-    function go(dir){
-      if (animating) return; var n=Math.max(0, Math.min(list.length-1, idx+dir));
-      if (n===idx) { setX(0,true); return; }
-      pause(idx); animating=true; idx=n; setX(0,true); dots.forEach(function(d,i){ d.classList.toggle('on', i===idx); }); yt.querySelector('.vcount').textContent=(idx+1)+' / '+list.length;
-      setTimeout(function(){ animating=false; }, DUR);
-    }
-    measure(); setX(0,false); window.addEventListener('resize', function(){ measure(); setX(0,false); });
-    track.addEventListener('touchstart', function(e){ if (animating||e.touches.length!==1) return; sx=e.touches[0].clientX; sy=e.touches[0].clientY; dx=0; t0=Date.now(); dragging=true; horiz=null; setX(0,false); }, {passive:true});
-    track.addEventListener('touchmove', function(e){
-      if (!dragging) return; var mx=e.touches[0].clientX-sx, my=e.touches[0].clientY-sy;
-      if (horiz===null && (Math.abs(mx)>6||Math.abs(my)>6)) horiz=Math.abs(mx)>Math.abs(my);
-      if (!horiz) return; e.preventDefault();
-      dx = mx; if ((idx===0 && mx>0) || (idx===list.length-1 && mx<0)) dx = mx*0.3;   // rubber-band at the ends
-      setX(dx,false);
-    }, {passive:false});
-    track.addEventListener('touchend', function(e){
-      if (!dragging) return; dragging=false;
-      var dt=Math.max(1, Date.now()-t0), v=Math.abs(dx)/dt;
-      if (horiz && (Math.abs(dx)>W*0.22 || v>0.45)) { go(dx<0?1:-1); return; }
-      setX(0,true);
-      // a tap (no real movement) on the video area plays / pauses it
-      if (!horiz && Math.abs(dx)<6 && dt<400) { var tap=e.target.closest && e.target.closest('.vtap, .vplay, .vposter'); if (tap) { var sl=tap.closest('.vslide'), i=slides.indexOf(sl); if (sl.querySelector('.video').classList.contains('playing')) pause(i); else play(i); } }
+    function pauseAll(){ slides.forEach(function(_,i){ pause(i); }); }
+    VS.swipeCarousel(sw, { perView: function(w){ return TOUCH ? 1 : (w >= 980 ? 3 : 2); }, onChange: pauseAll });
+    sw.addEventListener('click', function(e){
+      var t = e.target.closest && e.target.closest('.vtap, .vplay, .vposter'); if (!t) return;
+      var sl = t.closest('.vslide'), i = slides.indexOf(sl);
+      if (sl.querySelector('.video').classList.contains('playing')) pause(i); else { pauseAll(); play(i); }
     });
-    track.addEventListener('touchcancel', function(){ dragging=false; setX(0,true); });
-    // mouse fallback (desktop testing)
-    yt.addEventListener('click', function(e){ var t=e.target.closest && e.target.closest('.vplay, .vposter'); if (t && !TOUCH) { play(slides.indexOf(t.closest('.vslide'))); } });
   }
   if (VS.config.apiUrl) VS.api('GET','/youtube').then(ytGrid).catch(function(){ yt.innerHTML=''; }); else yt.innerHTML='';
   function render(list){

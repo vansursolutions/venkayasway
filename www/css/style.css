@@ -250,9 +250,10 @@ progress { width: 100%; }
 .only-touch { display: none; }
 .only-mouse { display: inline; }
 @media (hover: none) and (pointer: coarse) { .only-touch { display: inline; } .only-mouse { display: none; } }
-.vcar { position: relative; overflow: hidden; width: 100%; touch-action: pan-y; }
+.vcar { position: relative; width: 100%; }
 .vcar .vtrack { display: flex; will-change: transform; }
-.vcar .vslide { flex: 0 0 auto; padding-inline: 2px; box-sizing: border-box; }
+.vcar .vslide { flex: 0 0 auto; padding-inline: 6px; box-sizing: border-box; }
+.vcar .video { border-radius: 10px; overflow: hidden; }
 .vcar .video { position: relative; }
 .vcar .vposter { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
 .vcar .vplay { position: absolute; left: 50%; top: 50%; transform: translate(-50%,-50%); width: 68px; height: 48px; border: 0; border-radius: 14px; background: #ff0000; color: #fff; font-size: 1.4rem; display: flex; align-items: center; justify-content: center; z-index: 2; box-shadow: 0 4px 14px rgba(0,0,0,.4); }
