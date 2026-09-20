@@ -64,7 +64,7 @@
   function videoCarousel(list){
     yt.className='vcar';
     yt.innerHTML = '<div class="sw-wrap"><button class="sw-prev" aria-label="Previous">&#8249;</button><div class="sw"><div class="sw-track">'+list.map(function(v){
-      return '<div class="sw-slide vslide"><div class="video"><img class="vposter" src="https://i.ytimg.com/vi/'+v.id+'/hqdefault.jpg" alt=""><button class="vplay" aria-label="Play">&#9654;</button><div class="vtap"></div></div><p class="vtitle">'+esc(v.title)+'</p></div>';
+      return '<div class="sw-slide vslide"><div class="video"><img class="vposter" src="https://i.ytimg.com/vi/'+v.id+'/hqdefault.jpg" alt=""><button class="vplay" aria-label="Play">&#9654;</button><div class="vtap"></div><button class="vexpand" aria-label="Expand" title="Expand">&#x2922;</button></div><p class="vtitle">'+esc(v.title)+'</p></div>';
     }).join('')+'</div><div class="sw-dots"></div><div class="sw-count"></div></div><button class="sw-next" aria-label="Next">&#8250;</button></div>';
     var sw = yt.querySelector('.sw'), slides = Array.prototype.slice.call(sw.querySelectorAll('.vslide'));
     sw._prev = yt.querySelector('.sw-prev'); sw._next = yt.querySelector('.sw-next');
@@ -80,10 +80,43 @@
     function pauseAll(){ slides.forEach(function(_,i){ pause(i); }); }
     VS.swipeCarousel(sw, { perView: function(w){ return TOUCH ? 1 : (w >= 980 ? 3 : 2); }, onChange: pauseAll });
     sw.addEventListener('click', function(e){
+      var ex = e.target.closest && e.target.closest('.vexpand');
+      if (ex) { e.stopPropagation(); pauseAll(); openBig(list, slides.indexOf(ex.closest('.vslide'))); return; }
       var t = e.target.closest && e.target.closest('.vtap, .vplay, .vposter'); if (!t) return;
       var sl = t.closest('.vslide'), i = slides.indexOf(sl);
       if (sl.querySelector('.video').classList.contains('playing')) pause(i); else { pauseAll(); play(i); }
     });
+  }
+  // Big viewer: large player, swipe or arrows slide to the previous/next video, Esc or × closes
+  function openBig(list, start){
+    var EASE='cubic-bezier(0.22, 0.61, 0.36, 1)', DUR=420, idx=start, W=0, dx=0, sx=0, sy=0, t0=0, dragging=false, horiz=null, animating=false;
+    var box=document.createElement('div'); box.id='vlightbox';
+    box.innerHTML='<button class="close" aria-label="Close">&times;</button><button class="prev" aria-label="Previous">&#8249;</button>' +
+      '<div class="vl-stage"><div class="vl-track"><div class="vl-slide"></div><div class="vl-slide"></div><div class="vl-slide"></div></div></div>' +
+      '<div class="cap"></div><div class="count"></div><button class="next" aria-label="Next">&#8250;</button>';
+    document.body.appendChild(box); document.body.style.overflow='hidden';
+    var stage=box.querySelector('.vl-stage'), track=box.querySelector('.vl-track'), sl=Array.prototype.slice.call(track.children);
+    function at(i){ return list[((i%list.length)+list.length)%list.length]; }
+    function poster(v){ return '<img src="https://i.ytimg.com/vi/'+v.id+'/hqdefault.jpg" alt="">'; }
+    function fill(){
+      W=stage.clientWidth;
+      sl[0].innerHTML=poster(at(idx-1)); sl[2].innerHTML=poster(at(idx+1));
+      sl[1].innerHTML='<iframe src="'+ytEmbed(at(idx))+'&autoplay=1" title="'+esc(at(idx).title)+'" allow="autoplay; accelerometer; encrypted-media; picture-in-picture; fullscreen" allowfullscreen></iframe><div class="vl-grip"></div>';
+      box.querySelector('.cap').textContent=at(idx).title; box.querySelector('.count').textContent=(((idx%list.length)+list.length)%list.length+1)+' / '+list.length;
+      setX(0,false);
+    }
+    function setX(x, animate){ track.style.transition = animate ? 'transform '+DUR+'ms '+EASE : 'none'; track.style.transform='translate3d('+(x-W)+'px,0,0)'; }
+    function go(dir){ if (animating || list.length<2) { setX(0,true); return; } animating=true; sl[1].innerHTML=poster(at(idx)); setX(-dir*W,true); setTimeout(function(){ idx+=dir; fill(); animating=false; }, DUR); }
+    function close(){ if (box.parentNode) box.parentNode.removeChild(box); document.body.style.overflow=''; document.removeEventListener('keydown', keys); }
+    function keys(e){ if (e.key==='Escape') close(); if (e.key==='ArrowLeft') go(-1); if (e.key==='ArrowRight') go(1); }
+    box.addEventListener('click', function(e){ if (e.target===box || e.target.classList.contains('close')) close(); });
+    box.querySelector('.prev').onclick=function(e){ e.stopPropagation(); go(-1); }; box.querySelector('.next').onclick=function(e){ e.stopPropagation(); go(1); };
+    document.addEventListener('keydown', keys); window.addEventListener('resize', function(){ W=stage.clientWidth; setX(0,false); });
+    // swipe: the thin grip strip above the player and the side slides catch the finger; the player itself keeps its controls
+    stage.addEventListener('touchstart', function(e){ if (animating||e.touches.length!==1) return; sx=e.touches[0].clientX; sy=e.touches[0].clientY; dx=0; t0=Date.now(); dragging=true; horiz=null; setX(0,false); }, {passive:true});
+    stage.addEventListener('touchmove', function(e){ if (!dragging) return; var mx=e.touches[0].clientX-sx, my=e.touches[0].clientY-sy; if (horiz===null && (Math.abs(mx)>6||Math.abs(my)>6)) horiz=Math.abs(mx)>Math.abs(my); if (!horiz) return; e.preventDefault(); dx=mx; setX(dx,false); }, {passive:false});
+    stage.addEventListener('touchend', function(){ if (!dragging) return; dragging=false; var dt=Math.max(1,Date.now()-t0), v=Math.abs(dx)/dt; if (horiz && (Math.abs(dx)>W*0.22||v>0.45)) go(dx<0?1:-1); else setX(0,true); });
+    fill();
   }
   if (VS.config.apiUrl) VS.api('GET','/youtube').then(ytGrid).catch(function(){ yt.innerHTML=''; }); else yt.innerHTML='';
   function render(list){
