@@ -1,1 +1,1 @@
-New: Swamy's Messages page, in Telugu and English.
+Admin page fixes.
